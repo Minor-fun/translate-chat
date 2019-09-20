@@ -1,8 +1,10 @@
 {
   "files": {
-    "README.md": "0bbf7d1f720fbd7f30a9c58a8f14293ef720933d2f10cdabeae5ae5c58d5f7d5",
-    "index.js": "1b7aed2f994b5029bd3fe4d48421adab355695401f182adf049f6485703b586a",
-    "module.json": "e9da6b17b7fa90dfd8aa319d780ab20a467ddf8a7b324be594fff2201e392806",
-    "setting_migration.js": "18e29fda75a87d5eca35d1aaed7650478372699e7547a3ab9ce5633d250c18e6"
+    "module.json": "2bfbb787af434f454eb47b0660e7f78b352adb947fa9c194a2ea322e00cc09ef",
+    "README.md": "75c2bee8e6664fbc487b60223b4c2b3e06246e4ee957edc2e1b883f56a95c162",
+    "src/index.js": "24cbbcd5505a31ba3cad7482e33d5a7da7cb9e5bb61d407f42ddb14dcf118884",
+    "src/normalize.js": "54eb83ca3e15898f72091ba6bac1c8067972a2c03145ff72647de362175d9efa",
+    "src/setting_migration.js": "f842ae0416f3d63b239bf3757b8ffb76da25b61cbc4cd55c07769da0c59fac3d",
+    "src/translate.js": "c48dd1b00eeb008e6b1817a5c8f7531094a29105936a599d5e04f18a29b5c450"
   }
 }
