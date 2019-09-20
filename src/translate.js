@@ -26,15 +26,3 @@ module.exports.translate = async function translate(text, translateTo, translate
   const body = await get(url);
   return body[0][0][0];
 };
-/*
- // usage
- async function main() {
- const result = await translate(
- 'ru',
- 'i like carrots'
- );
- console.log(`result: ${result}`);
- }
-
- main();
- */

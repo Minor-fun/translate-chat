@@ -28,8 +28,6 @@ translates incoming chat text into another language
 ## Changelog
 <details>
 
-    1.1
-    - make it look like a human wrote it
     1.0
     - remove completely unresonable dependencies
 
@@ -43,4 +41,3 @@ translates incoming chat text into another language
 ---
 
 ![Screenshot](https://i.imgur.com/JPngjxU.jpg)
-    //"https://raw.githubusercontent.com/Pravv/translate-chat/master/"

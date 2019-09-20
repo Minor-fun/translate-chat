@@ -2,7 +2,7 @@
   "disableAutoUpdate": false,
   "name": "Translate",
   "author": "Prav",
-  "version": "1.5",
+  "version": "1.1",
   "description": "Translates incoming and outgoing messages to another language using Google Translate.",
   "options": {
     "niceName": "Translate",
@@ -11,5 +11,6 @@
     "settingsMigrator": "src/setting_migration.js"
   },
   "servers": [
+    "https://raw.githubusercontent.com/Pravv/translate-chat/master/"
   ]
 }
