@@ -1,0 +1,15 @@
+{
+  "disableAutoUpdate": false,
+  "name": "Translate",
+  "author": "Prav",
+  "version": "1.5",
+  "description": "Translates incoming and outgoing messages to another language using Google Translate.",
+  "options": {
+    "niceName": "Translate",
+    "settingsVersion": 2,
+    "settingsFile": "config.json",
+    "settingsMigrator": "src/setting_migration.js"
+  },
+  "servers": [
+  ]
+}
