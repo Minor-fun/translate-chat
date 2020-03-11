@@ -1,9 +1,4 @@
 const { translate, AVAILABLE_LANGUAGES } = require('./translate');
-const { normalize } = require('./normalize');
-
-const normalizeNa = (str) => {
-  return normalize(str).replace(/[^\x00-\x7F]/g, '').replace(/\s+$/, '');
-};
 
 module.exports = class Translator {
   constructor(mod) {
@@ -20,48 +15,50 @@ module.exports = class Translator {
   }
 
   setupHooks() {
-    const CHAT_SERVER_PACKETS = [['S_CHAT', 3], ['S_WHISPER', 3], ['S_PRIVATE_CHAT', 1]];
-    const CHAT_CLIENT_PACKETS = [['C_WHISPER', 1], ['C_CHAT', 1]];
-
     const incomingMsgHandler = async (packet, version, event) => {
       if (!this.mod.settings.enabled) return;
       if (this.mod.game.me.is(event.gameId)) return;
 
-      const translated = await this.translate(event.message);
+      const translated = await this.translate(event.message, { target: this.mod.settings.targetLang, source: this.mod.settings.sourceLang });
       if (!translated) return;
 
       this.mod.send(packet, version, { ...event, message: translated, name: event.name + ' (Translated)' });
     };
 
-    const outgoingMessageHandler = async (packet, version, event) => {
+    const outgoingMessageHandler = (packet, version, event) => {
+
       if (packet === 'C_WHISPER') {
         event.target = event.target.replace(/(\(Translated\)).*?/g, '').replace(/\s+$/, '');
       }
       if (!this.mod.settings.sendMode) return true;
 
-      const translated = await this.translate(event.message);
-      if (!translated) return;// this.mod.send('C_WHISPER', 1, event)
+      (async () => {
+        const translated = await this.translate(event.message, { source: 'auto', target: this.mod.settings.sendLang });
+        if (!translated) return this.mod.send(packet, version, event);
 
-      this.mod.send(packet, version, { ...event, message: `<FONT>${translated}</FONT>` });
-      this.mod.command.message(`Original message: ${event.message.replace(/<(.+?)>|&rt;|&lt;|&gt;|/g, '').replace(/\s+$/, '')}`);
+        this.mod.send(packet, version, { ...event, message: `<FONT>${translated}</FONT>` });
+        this.mod.command.message(`Original message: ${event.message.replace(/<(.+?)>|&rt;|&lt;|&gt;|/g, '').replace(/\s+$/, '')}`);
+      })();
 
       return false;
     };
 
+    const CHAT_SERVER_PACKETS = [['S_CHAT', 3], ['S_WHISPER', 3], ['S_PRIVATE_CHAT', 1]];
+    const CHAT_CLIENT_PACKETS = [['C_WHISPER', 1], ['C_CHAT', 1]];
     for (const [packet, version] of CHAT_SERVER_PACKETS) this.mod.hook(packet, version, { order: 100 }, event => incomingMsgHandler(packet, version, event));
-    for (const [packet, version] of CHAT_CLIENT_PACKETS) this.mod.hook(packet, version, event => outgoingMessageHandler(packet, version, event));
+    for (const [packet, version] of CHAT_CLIENT_PACKETS) this.mod.hook(packet, version, {}, event => outgoingMessageHandler(packet, version, event));
   }
 
-  async translate(message) {
+  async translate(message, { target, source }) {
     const sanitized = message.replace(/<(.+?)>|&rt;|&lt;|&gt;|/g, '').replace(/\s+$/, '');
     if (sanitized === '') return;
 
-    const translated = await translate(sanitized, this.mod.settings.targetLang, this.mod.settings.sourceLang)
+    const translated = await translate(sanitized, target, source)
       .catch(e => {
         this.mod.error(
           `Error occurred during translation message:${message},`,
-          `target:${this.mod.settings.targetLang},`,
-          `source:${this.mod.settings.sourceLang},`,
+          `target:${target},`,
+          `source:${source},`,
           'error:', e);
         return '';
       });
@@ -130,7 +127,7 @@ module.exports = class Translator {
           this.mod.command.message(`Error: ${enable} is not a valid language. See readme for available languages.`);
         }
         this.mod.saveSettings();
-      }
+      },
     });
   }
 };

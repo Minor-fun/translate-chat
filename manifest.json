@@ -1,11 +1,11 @@
 {
   "files": {
-    "module.json": "2bfbb787af434f454eb47b0660e7f78b352adb947fa9c194a2ea322e00cc09ef",
     "package.json": "814dd35edb1fb4b42dd7a80c6859fcfc87adb5ae3068f8f5feb09027f3270f28",
+    "module.json": "2bfbb787af434f454eb47b0660e7f78b352adb947fa9c194a2ea322e00cc09ef",
     "README.md": "75c2bee8e6664fbc487b60223b4c2b3e06246e4ee957edc2e1b883f56a95c162",
-    "src/index.js": "24cbbcd5505a31ba3cad7482e33d5a7da7cb9e5bb61d407f42ddb14dcf118884",
+    "src/index.js": "cb41981776d9be23203d592247e7c824f12d06150ad83a42f153f501dfc6f326",
     "src/normalize.js": "54eb83ca3e15898f72091ba6bac1c8067972a2c03145ff72647de362175d9efa",
     "src/setting_migration.js": "f842ae0416f3d63b239bf3757b8ffb76da25b61cbc4cd55c07769da0c59fac3d",
-    "src/translate.js": "511a1505265f3ab3744e1f26d2eb6005a20efd749ed4cb80a1ce86bb67ddf635"
+    "src/translate.js": "3baaf44dca65c6e178eab0f8584b5bc6b7a8f9df16b41c2631622cf09219042e"
   }
 }
