@@ -1,4 +1,4 @@
-const { translate, AVAILABLE_LANGUAGES } = require('./translate');
+const { translate, normalizeNa, AVAILABLE_LANGUAGES } = require('./translate');
 
 module.exports = class Translator {
   constructor(mod) {
@@ -26,7 +26,6 @@ module.exports = class Translator {
     };
 
     const outgoingMessageHandler = (packet, version, event) => {
-
       if (packet === 'C_WHISPER') {
         event.target = event.target.replace(/(\(Translated\)).*?/g, '').replace(/\s+$/, '');
       }
@@ -64,10 +63,7 @@ module.exports = class Translator {
       });
 
     if (translated === sanitized) return;
-    if (this.mod.region === 'na') {
-      return normalizeNa(translated);
-    }
-
+    if (this.mod.region === 'na') return normalizeNa(translated);
     return translated;
   }
 
@@ -127,7 +123,7 @@ module.exports = class Translator {
           this.mod.command.message(`Error: ${enable} is not a valid language. See readme for available languages.`);
         }
         this.mod.saveSettings();
-      },
+      }
     });
   }
 };

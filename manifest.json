@@ -3,9 +3,9 @@
     "package.json": "814dd35edb1fb4b42dd7a80c6859fcfc87adb5ae3068f8f5feb09027f3270f28",
     "module.json": "2bfbb787af434f454eb47b0660e7f78b352adb947fa9c194a2ea322e00cc09ef",
     "README.md": "75c2bee8e6664fbc487b60223b4c2b3e06246e4ee957edc2e1b883f56a95c162",
-    "src/index.js": "cb41981776d9be23203d592247e7c824f12d06150ad83a42f153f501dfc6f326",
+    "src/index.js": "779b45c2e33a84c5a655ba75e87276c1f6921cce3d70d9d5ad56f4cd45391f9d",
+    "src/translate.js": "c64118674ab103bfdf9abd6cd5f62fc9f9789ca1fbc5f0de76921f7f90c1733a",
     "src/normalize.js": "54eb83ca3e15898f72091ba6bac1c8067972a2c03145ff72647de362175d9efa",
-    "src/setting_migration.js": "f842ae0416f3d63b239bf3757b8ffb76da25b61cbc4cd55c07769da0c59fac3d",
-    "src/translate.js": "3baaf44dca65c6e178eab0f8584b5bc6b7a8f9df16b41c2631622cf09219042e"
+    "src/setting_migration.js": "f842ae0416f3d63b239bf3757b8ffb76da25b61cbc4cd55c07769da0c59fac3d"
   }
 }

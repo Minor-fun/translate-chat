@@ -19,8 +19,8 @@ async function translate(text, translateTo, translateFrom = 'auto') {
     body: params,
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-      'User-Agent': 'AndroidTranslate/5.3.0.RC02.130475354-53000263 5.1 phone TRANSLATE_OPM5_TEST_1',
-    },
+      'User-Agent': 'AndroidTranslate/5.3.0.RC02.130475354-53000263 5.1 phone TRANSLATE_OPM5_TEST_1'
+    }
   })
     .then(res => res.json());
   return body.sentences[0].trans;
