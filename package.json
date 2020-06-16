@@ -12,5 +12,19 @@
     "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pravv/translate-chat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Pravv/translate-chat/issues"
+  },
+  "homepage": "https://github.com/Pravv/translate-chat#readme",
+  "dependencies": {
+    "node-fetch": "^2.6.0"
   }
 }

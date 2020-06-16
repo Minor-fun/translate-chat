@@ -1,11 +1,11 @@
 {
   "disableAutoUpdate": false,
-  "name": "Translate",
+  "name": "translate-chat",
   "author": "Prav",
   "version": "1.1",
   "description": "Translates incoming and outgoing messages to another language using Google Translate.",
   "options": {
-    "niceName": "Translate",
+    "niceName": "translate-chat",
     "settingsVersion": 2,
     "settingsFile": "config.json",
     "settingsMigrator": "src/setting_migration.js"
