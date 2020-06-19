@@ -5,6 +5,7 @@
     "src/index.js": "779b45c2e33a84c5a655ba75e87276c1f6921cce3d70d9d5ad56f4cd45391f9d",
     "src/normalize.js": "54eb83ca3e15898f72091ba6bac1c8067972a2c03145ff72647de362175d9efa",
     "src/setting_migration.js": "f842ae0416f3d63b239bf3757b8ffb76da25b61cbc4cd55c07769da0c59fac3d",
-    "src/translate.js": "c64118674ab103bfdf9abd6cd5f62fc9f9789ca1fbc5f0de76921f7f90c1733a"
+    "src/translate.js": "c64118674ab103bfdf9abd6cd5f62fc9f9789ca1fbc5f0de76921f7f90c1733a",
+    "package.json": "ba0c291bc980f651789b2b660537e522b3222c84545f9c458507dccae68d043d"
   }
 }

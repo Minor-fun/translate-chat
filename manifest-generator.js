@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const IGNORED_FILES = ['manifest.json', 'manifest-generator.js', 'manifest-generator.bat', 'manifest-generator.exe', 'node.exe', 'package.json', 'package-lock.json'];
+const IGNORED_FILES = ['manifest.json', 'manifest-generator.js', 'manifest-generator.bat', 'manifest-generator.exe', 'node.exe', 'package-lock.json'];
 const IGNORED_START_SYMBOL = ['.', '_'];
 const IGNORED_DIRS = [path.join(__dirname, 'node_modules')];
 
