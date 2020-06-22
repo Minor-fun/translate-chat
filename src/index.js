@@ -22,13 +22,10 @@ module.exports = class Translator {
       const translated = await this.translate(event.message, { target: this.mod.settings.targetLang, source: this.mod.settings.sourceLang });
       if (!translated) return;
 
-      this.mod.send(packet, version, { ...event, message: translated, name: event.name + ' (Translated)' });
+      this.mod.send(packet, version, { ...event, message: `(Translated) ${translated}` });
     };
 
     const outgoingMessageHandler = (packet, version, event) => {
-      if (packet === 'C_WHISPER') {
-        event.target = event.target.replace(/(\(Translated\)).*?/g, '').replace(/\s+$/, '');
-      }
       if (!this.mod.settings.sendMode) return true;
 
       (async () => {
@@ -56,9 +53,9 @@ module.exports = class Translator {
       .catch(e => {
         this.mod.error(
           `Error occurred during translation message:${message},`,
-          `target:${target},`,
-          `source:${source},`,
-          'error:', e);
+          `target: ${target},`,
+          `source: ${source},`,
+          'error: ', e);
         return '';
       });
 
@@ -105,25 +102,25 @@ module.exports = class Translator {
         this.mod.settings.targetLang = language;
         this.mod.saveSettings();
       },
-      send: enable => {
-        if (enable === undefined) {
+      send: language => {
+        if (language === undefined) {
           this.mod.settings.sendMode = !this.mod.settings.sendMode;
           this.mod.command.message(`Send Mode: ${this.mod.settings.sendMode ? ('enabled. Language: ' + this.mod.settings.sendLang) : 'disabled.'}`);
-        } else if (AVAILABLE_LANGUAGES.includes(enable)) {
+        } else if (AVAILABLE_LANGUAGES.includes(language)) {
           this.mod.settings.sendMode = true;
-          this.mod.settings.sendLang = enable;
-          this.mod.command.message(`Now translating outgoing messages to: ${enable}`);
-        } else if (enable === 'off') {
+          this.mod.settings.sendLang = language;
+          this.mod.command.message(`Now translating outgoing messages to: ${language}`);
+        } else if (language === 'off') {
           this.mod.settings.sendMode = false;
           this.mod.command.message('Send Mode Disabled.');
-        } else if (enable === 'on') {
+        } else if (language === 'on') {
           this.mod.settings.sendMode = true;
           this.mod.command.message(`Send Mode Enabled. Now translating outgoing messages to ${this.mod.settings.sendLang}.`);
         } else {
-          this.mod.command.message(`Error: ${enable} is not a valid language. See readme for available languages.`);
+          this.mod.command.message(`Error: ${language} is not a valid language. See readme for available languages.`);
         }
         this.mod.saveSettings();
-      }
+      },
     });
   }
 };
