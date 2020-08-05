@@ -2,7 +2,7 @@
   "files": {
     "module.json": "c5148e5131a82795961242328a4144485e23b71eed7064732319fd14d753cd90",
     "README.md": "75c2bee8e6664fbc487b60223b4c2b3e06246e4ee957edc2e1b883f56a95c162",
-    "src/index.js": "86c482a5db9e6d0127183424cd10deb81aaa16cb83dc9bb2b6ec310642597649",
+    "src/index.js": "1809876de302066c47cdfd565b63afdb39241a703ec9d7ff53df48de6198e82f",
     "src/normalize.js": "54eb83ca3e15898f72091ba6bac1c8067972a2c03145ff72647de362175d9efa",
     "src/setting_migration.js": "f842ae0416f3d63b239bf3757b8ffb76da25b61cbc4cd55c07769da0c59fac3d",
     "src/translate.js": "c64118674ab103bfdf9abd6cd5f62fc9f9789ca1fbc5f0de76921f7f90c1733a",

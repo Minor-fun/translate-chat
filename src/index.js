@@ -60,7 +60,7 @@ module.exports = class Translator {
       });
 
     if (translated === sanitized) return;
-    if (this.mod.region === 'na') return normalizeNa(translated);
+    if (this.mod.publisher === 'eme') return normalizeNa(translated);
     return translated;
   }
 
@@ -120,7 +120,7 @@ module.exports = class Translator {
           this.mod.command.message(`Error: ${language} is not a valid language. See readme for available languages.`);
         }
         this.mod.saveSettings();
-      },
+      }
     });
   }
 };
