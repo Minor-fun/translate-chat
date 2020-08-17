@@ -26,7 +26,8 @@ module.exports = class Translator {
     };
 
     const outgoingMessageHandler = (packet, version, event) => {
-      if (!this.mod.settings.sendMode) return true;
+      if (!this.mod.settings.enabled) return;
+      if (!this.mod.settings.sendMode) return;
 
       (async () => {
         const translated = await this.translate(event.message, { source: 'auto', target: this.mod.settings.sendLang });
@@ -40,8 +41,8 @@ module.exports = class Translator {
     };
 
     const CHAT_SERVER_PACKETS = [['S_CHAT', 3], ['S_WHISPER', 3], ['S_PRIVATE_CHAT', 1]];
-    const CHAT_CLIENT_PACKETS = [['C_WHISPER', 1], ['C_CHAT', 1]];
     for (const [packet, version] of CHAT_SERVER_PACKETS) this.mod.hook(packet, version, { order: 100 }, event => incomingMsgHandler(packet, version, event));
+    const CHAT_CLIENT_PACKETS = [['C_WHISPER', 1], ['C_CHAT', 1]];
     for (const [packet, version] of CHAT_CLIENT_PACKETS) this.mod.hook(packet, version, {}, event => outgoingMessageHandler(packet, version, event));
   }
 
@@ -52,7 +53,7 @@ module.exports = class Translator {
     const translated = await translate(sanitized, target, source)
       .catch(e => {
         this.mod.error(
-          `Error occurred during translation message:${message},`,
+          `Error occurred during translation, message:${message},`,
           `target: ${target},`,
           `source: ${source},`,
           'error: ', e);
@@ -120,7 +121,7 @@ module.exports = class Translator {
           this.mod.command.message(`Error: ${language} is not a valid language. See readme for available languages.`);
         }
         this.mod.saveSettings();
-      }
+      },
     });
   }
 };

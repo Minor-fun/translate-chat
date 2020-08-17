@@ -1,11 +1,12 @@
 module.exports = {
   extends: [
-    'standard'
+    'standard',
   ],
   rules: {
     'no-console': 'error',
     'space-before-function-paren': 'off',
     'semi': ['error', 'always'],
-    'operator-linebreak': ['error', 'before']
-  }
+    'operator-linebreak': ['error', 'before'],
+    'consistent-return': 'off',
+  },
 };
