@@ -7,9 +7,7 @@ lngDetector.setLanguageType('iso2');
 module.exports.AVAILABLE_LANGUAGES = ['af', 'sq', 'ar', 'az', 'eu', 'bn', 'be', 'bg', 'ca', 'zh-CN', 'zh-TW', 'hr', 'cs', 'da', 'nl', 'en', 'eo', 'et', 'tl', 'fi', 'fr', 'gl', 'ka', 'de', 'el', 'gu', 'ht', 'iw', 'hi', 'hu', 'is', 'id', 'ga', 'it', 'ja', 'kn', 'ko', 'la', 'lv', 'lt', 'mk', 'ms', 'mt', 'no', 'fa', 'pl', 'pt', 'ro', 'ru', 'sr', 'sk', 'sl', 'es', 'sw', 'sv', 'ta', 'te', 'th', 'tr', 'uk', 'ur', 'vi', 'cy', 'yi', 'any'];
 
 async function translate(text, translateTo, translateFrom = 'auto') {
-  const textWithStrippedFONT = text.substring(6, text.length - 7);
-
-  const detectedLanguage = lngDetector.detect(textWithStrippedFONT, 1);
+  const detectedLanguage = lngDetector.detect(text, 1);
   if (detectedLanguage[0] && detectedLanguage[0][0] === translateTo) return text;
 
   // Stolen from  https://github.com/statickidz/node-google-translate-skidz
@@ -20,7 +18,7 @@ async function translate(text, translateTo, translateFrom = 'auto') {
   const params = new URLSearchParams();
   params.append('sl', translateFrom);
   params.append('tl', translateTo);
-  params.append('q', textWithStrippedFONT);
+  params.append('q', text);
 
   const response = await request(url, {
     method: 'post',
@@ -33,7 +31,7 @@ async function translate(text, translateTo, translateFrom = 'auto') {
   const body = await response.text();
   try {
     const jsonBody = JSON.parse(body);
-    return `<FONT>${jsonBody.sentences[0].trans}</FONT>`;
+    return `${jsonBody.sentences[0].trans}`;
   } catch (e) {
   }
 }

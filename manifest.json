@@ -2,10 +2,10 @@
   "files": {
     "module.json": "c5148e5131a82795961242328a4144485e23b71eed7064732319fd14d753cd90",
     "README.md": "75c2bee8e6664fbc487b60223b4c2b3e06246e4ee957edc2e1b883f56a95c162",
-    "src/index.js": "bf99f1d05046b0814841153e1f857b6664f13138bfc3fa889108b7d74f36e5f6",
+    "src/index.js": "1ada849a7ca798a9d15faa19b4ffdc62f95b2c202277f6f9e68c90baa6e1d250",
     "src/normalize.js": "54eb83ca3e15898f72091ba6bac1c8067972a2c03145ff72647de362175d9efa",
     "src/setting_migration.js": "f842ae0416f3d63b239bf3757b8ffb76da25b61cbc4cd55c07769da0c59fac3d",
-    "src/translate.js": "76ca89371c6522861a240bee3289333a73ea5a7c5e5a8ed2df16e25cbb8e9968",
+    "src/translate.js": "f3473d85bc63a55a9590b4f0b549221966496b8027eea05288d26e68c66e4781",
     "package.json": "b30377944723354c60a47ba538f7b79dd8c7d3b7f0dede17f1a4d431127f4149",
     "lib/language-detector/data/lang.json": "a26067df3f9f3f4498132c37cd8fdb5b2621be07b2db9483edc7fde51ca02031",
     "lib/language-detector/data/unicode_blocks.json": "60945d5e293568e0591625a286be98b246893d08dc133c4bba02eeaa4f716ed4",

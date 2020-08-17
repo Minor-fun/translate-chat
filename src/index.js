@@ -22,7 +22,7 @@ module.exports = class Translator {
       const translated = await this.translate(event.message, { target: this.mod.settings.targetLang, source: this.mod.settings.sourceLang });
       if (!translated) return;
 
-      this.mod.send(packet, version, { ...event, message: `(Translated) ${translated}` });
+      this.mod.send(packet, version, { ...event, message: `<FONT>(Translated) ${translated}</FONT>` });
     };
 
     const outgoingMessageHandler = (packet, version, event) => {
