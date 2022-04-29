@@ -3,7 +3,7 @@
 const DefaultSettings = {
   enabled: true,
   sourceLang: 'auto',
-  targetLang: 'en',
+  targetLang: 'ru',
   sendMode: false,
   sendLang: 'en'
 };
