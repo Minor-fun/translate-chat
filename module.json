@@ -2,7 +2,7 @@
     "disableAutoUpdate": false,
     "name": "translate-chat",
     "author": "Prav",
-    "version": "4/30/2022",
+    "version": "5/1/2022",
     "description": "Translates incoming and outgoing messages to another language using Google Translate.",
     "options": {
         "niceName": "translate-chat",
