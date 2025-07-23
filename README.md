@@ -2,7 +2,7 @@
 
 这是一款为 TERA 设计的实时聊天翻译插件，旨在帮助玩家轻松跨越语言障碍，与来自全球的玩家无缝交流。加入了多种 **AI 翻译接口** 和 **本地化功能**。
 
-[English](README.en.md) | [中文](README.md)
+[English](README-en.md) | [简体中文](README.md) 
 
 ### **依赖**：需要运行 **Toolbox 工具箱**。
 
@@ -69,7 +69,7 @@
 #### Gemini API (Google AI)
 
 *   **特点**:
-    *   **免费使用**，免费层级有速率限制，详情访问：https://ai.google.dev/gemini-api/docs/rate-limits）
+    *   **免费使用**，免费层级有[速率限制](https://ai.google.dev/gemini-api/docs/rate-limits)
     *   支持 **模型降级策略**：在模型受限时自动尝试其他可用模型，提高可用性。
     *   支持 **多密钥循环**：配置多个密钥可避免 API 速率限制。
 *   **设置步骤**:
@@ -84,12 +84,20 @@
             ```
             translate config geminiKeys KEY1_EXAMPLE,KEY2_EXAMPLE,KEY3_EXAMPLE # 请替换为您的实际密钥
             ```
-    4.  **配置模型**: 通过命令配置您希望使用的具体 Gemini 模型（例如：`gemini-2.5-flash-lite-preview-06-17`, `gemini-2.0-flash`，`gemini-2.0-flash-lite`）（模型列表：https://ai.google.dev/gemini-api/docs/rate-limits）：
+    4.  **配置模型**: 通过命令配置您希望使用的具体 Gemini 模型（例如：`gemini-2.5-flash`, `gemini-2.5-flash-lite`，`gemini-2.0-flash`）[查看模型列表](https://ai.google.dev/gemini-api/docs/models)：
         ```
-        translate config geminiModels gemini-2.5-flash-lite-preview-06-17,gemini-2.0-flash,gemini-2.0-flash-lite
+        translate config geminiModels gemini-2.5-flash,gemini-2.5-flash-lite,gemini-2.0-flash
         ```
 
-*   **🚀 Cloudflare AI Gateway 模式 (可选)**:
+
+    *   **提示**: Gemini 在部分国家/地区（例如：国内、香港、俄罗斯等）不支持访问。详情请查看：[限制地区](https://ai.google.dev/gemini-api/docs/available-regions)。
+    * **绕过gemini地区限制方法**：
+	    * 1、使用游戏加速器加速toolbox，需要确保游戏加速器节点在gemini支持区域列表。
+	    * 2、使用[cfll-gemini](https://github.com/DragonEmpery/cfll-gemini)项目，关闭Translate chat插件更新，修改translate-chat\src\translate.js文件，将文件内的`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`，替换成cfll-gemini项目获取的地址
+
+---
+
+*   **Cloudflare AI Gateway 模式 (可选)**:
     如果您拥有 Cloudflare 账户，可以利用其 AI Gateway 服务，进一步提高 API 稳定性并方便分析 API 用量。
     1.  **创建 AI Gateway**: 登录 Cloudflare 主页，左侧导航栏依次点击 **AI** → **AI Gateway** → 右上角 **创建网关**，命名为："mygemini" (或其他您喜欢的名称)。
     2.  **获取 API 端点**: 点击您已创建的网关，再点击右上角 **API** 按钮，查看 API 端点（例如：`https://gateway.ai.cloudflare.com/v1/YOUR_CLOUDFLARE_ACCOUNT_ID_EXAMPLE/mygemini/`）。
@@ -99,10 +107,8 @@
         translate config cloudflareAccountId YOUR_CLOUDFLARE_ACCOUNT_ID_HERE # 请替换为您的实际账户ID
         translate config cloudflareGatewayId mygemini # 请替换为您的实际网关ID
         ```
-    *   **提示**: Gemini 在部分国家/地区（例如：中国、中国香港、俄罗斯等）不支持访问。详情请查看：[https://ai.google.dev/gemini-api/docs/available-regions](https://ai.google.dev/gemini-api/docs/available-regions)。
-    * **绕过gemini地区限制方法**：
-	    * 1、使用游戏加速器加速toolbox，需要确保游戏加速器节点在gemini支持区域列表。
-	    * 2、使用[cfll-gemini](https://github.com/DragonEmpery/cfll-gemini)项目，关闭Translate chat插件更新，修改translate-chat\src\translate.js文件，将文件内的`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`，替换成cfll-gemini项目获取的地址
+
+---
 
 #### OpenAI (ChatGPT)
 
@@ -140,7 +146,7 @@
 *   **添加/更新术语**:
     假设您希望游戏中的副本缩写 "AAH" 总是被准确地翻译成 "AAH"，而不是其他内容。
     ```
-    /translate term add AAH AAH
+    translate term add AAH AAH
     ```
     *   `AAH` 是原文（或原始缩写）。
     *   `AAH` 是您指定的目标语言译文。
@@ -149,7 +155,7 @@
 *   **搜索术语**:
     查找您已经添加过的术语，方便管理。
     ```
-    /translate term search AAH
+    translate term search AAH
     ```
 
 ---
@@ -311,5 +317,4 @@ GUI 界面提供了直观的方式来管理插件的各项功能和参数。
 * [Pravv](https://github.com/Pravv)
 * [teralove](https://github.com/teralove)
 * [HakuryuuDom](https://github.com/HakuryuuDom)
-
 

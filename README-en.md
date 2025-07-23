@@ -2,7 +2,7 @@
 
 This is a real-time chat translation plugin designed for TERA, aiming to help players easily overcome language barriers and communicate seamlessly with players from around the world. It integrates various **AI translation interfaces** and **localization features**.
 
-[English](README.en.md) | [中文](README.md)
+[English](README-en.md) | [简体中文](README.md) 
 
 ### **Dependency**: Requires **Toolbox** to run.
 
@@ -69,7 +69,7 @@ The plugin uses Google Translate by default and can be used without any configur
 #### Gemini API (Google AI)
 
 *   **Features**:
-    *   **Free to use**, with rate limits on the free tier (for details, visit: https://ai.google.dev/gemini-api/docs/rate-limits).
+    *   **Free to use**, with rate limits on [the free tier details](https://ai.google.dev/gemini-api/docs/rate-limits)
     *   Supports **model fallback strategy**: Automatically attempts other available models when a model is restricted, improving availability.
     *   Supports **multiple key cycling**: Configuring multiple keys can help avoid API rate limits.
 *   **Setup Steps**:
@@ -84,12 +84,20 @@ The plugin uses Google Translate by default and can be used without any configur
             ```
             translate config geminiKeys KEY1_EXAMPLE,KEY2_EXAMPLE,KEY3_EXAMPLE # Please replace with your actual keys
             ```
-    4.  **Configure Model**: Use the command to configure the specific Gemini model you wish to use (e.g., `gemini-2.5-flash-lite-preview-06-17`, `gemini-2.0-flash`, `gemini-2.0-flash-lite`) (Model list: https://ai.google.dev/gemini-api/docs/rate-limits):
+    4.  **Configure Model**: Use the command to configure the specific Gemini model you wish to use (e.g., `gemini-2.5-flash`, `gemini-2.5-flash-lite`，`gemini-2.0-flash`) [All Model list](https://ai.google.dev/gemini-api/docs/models):
         ```
-        translate config geminiModels gemini-2.5-flash-lite-preview-06-17,gemini-2.0-flash,gemini-2.0-flash-lite
+        translate config geminiModels gemini-2.5-flash,gemini-2.5-flash-lite,gemini-2.0-flash
         ```
 
-*   **🚀 Cloudflare AI Gateway Mode (Optional)**:
+
+    *   **Tip**: Gemini does not support access in some countries/regions (e.g., China, Hong Kong, Russia, etc.) [details](https://ai.google.dev/gemini-api/docs/available-regions).
+    *   **Method to bypass Gemini regional restrictions**:
+        *   1. Use a game accelerator to accelerate Toolbox, ensuring the accelerator node is in the Gemini supported regions list.
+        *   2. Use the [cfll-gemini](https://github.com/DragonEmpery/cfll-gemini) project. Disable Translate Chat plugin updates, modify the `translate-chat\src\translate.js` file, and replace `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` with the address obtained from the cfll-gemini project.
+
+---
+
+*   **Cloudflare AI Gateway Mode (Optional)**:
     If you have a Cloudflare account, you can leverage its AI Gateway service to further improve API stability and easily analyze API usage.
     1.  **Create AI Gateway**: Log in to your Cloudflare homepage, click **AI** → **AI Gateway** in the left navigation bar → **Create Gateway** in the top right, name it: "mygemini" (or any name you prefer).
     2.  **Get API Endpoint**: Click on your created gateway, then click the **API** button in the top right to view the API endpoint (e.g., `https://gateway.ai.cloudflare.com/v1/YOUR_CLOUDFLARE_ACCOUNT_ID_EXAMPLE/mygemini/`).
@@ -99,10 +107,8 @@ The plugin uses Google Translate by default and can be used without any configur
         translate config cloudflareAccountId YOUR_CLOUDFLARE_ACCOUNT_ID_HERE # Please replace with your actual account ID
         translate config cloudflareGatewayId mygemini # Please replace with your actual gateway ID
         ```
-    *   **Tip**: Gemini does not support access in some countries/regions (e.g., China, Hong Kong, Russia, etc.). For details, please see: [https://ai.google.dev/gemini-api/docs/available-regions](https://ai.google.dev/gemini-api/docs/available-regions).
-    *   **Method to bypass Gemini regional restrictions**:
-        *   1. Use a game accelerator to accelerate Toolbox, ensuring the accelerator node is in the Gemini supported regions list.
-        *   2. Use the [cfll-gemini](https://github.com/DragonEmpery/cfll-gemini) project. Disable Translate Chat plugin updates, modify the `translate-chat\src\translate.js` file, and replace `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` with the address obtained from the cfll-gemini project.
+
+---
 
 #### OpenAI (ChatGPT)
 
@@ -140,7 +146,7 @@ By defining translations for in-game specific abbreviations, class names, and ot
 *   **Add/Update Terminology**:
     Suppose you want the in-game dungeon abbreviation "AAH" to always be accurately translated as "AAH", not something else.
     ```
-    /translate term add AAH AAH
+    translate term add AAH AAH
     ```
     *   `AAH` is the original text (or original abbreviation).
     *   `AAH` is your specified target language translation.
@@ -149,7 +155,7 @@ By defining translations for in-game specific abbreviations, class names, and ot
 *   **Search Terminology**:
     Find terms you have already added for easier management.
     ```
-    /translate term search AAH
+    translate term search AAH
     ```
 
 ---
@@ -312,6 +318,3 @@ The GUI interface provides an intuitive way to manage various functions and para
 * [Pravv](https://github.com/Pravv)
 * [teralove](https://github.com/teralove)
 * [HakuryuuDom](https://github.com/HakuryuuDom)
-
----
-Translated by Gemini
