@@ -1,7 +1,7 @@
 {
     "files": {
-        "README.en.md": "735a8b61ae5cc740c8effecdea8b38743d12e8e72c2262af988345a9ccf32c82",
-        "README.md": "e19eedfde4e86c97f664e5fd0b1e51f741fadb27ee3fda108039a936f0f0c158",
+        "README-zh.md": "52cb4b9b0ff8c1a424ca5f0271ce013cb084e83ad3e4e25ffa5379ba3de972e6",
+        "README.md": "38e9cf0a6c39bc054f68fbd5d8cdef017e48d698f38c4a579c142aacb5a2ffc0",
         "lib/language-detector/LICENSE": "84912a26f83f364da008f21740f703434e380ed1658a9a00c9f3b8e5b045df36",
         "lib/language-detector/data/unicode_blocks.json": "60945d5e293568e0591625a286be98b246893d08dc133c4bba02eeaa4f716ed4",
         "lib/language-detector/index.js": "b0e52b0ed41f5c8e1ad601be66c160d741e7f2b99e50c5e3c5edff51b4f3623c",
@@ -9,7 +9,7 @@
         "lib/language-detector/lib/LanguageDetect.js": "7a53ebe20d6ff535655eddaab24cd742cf418e7a9c95096a40622d946df87d49",
         "lib/language-detector/lib/eld.js": "58cd8d4a777a8cd1744b5ce89b96d2b34e088ea5fca93b03d09039475a4c3e36",
         "lib/language-detector/package.json": "025d2442278dfd6f96c728bfa7824952764320af69b63c7e2ae1d7e7d07d38d6",
-        "module.json": "37f163294118039af1a4f6d3dbeba09ec4f2466beb6d849688d26422661dc10d",
+        "module.json": "7961b883a2680e087cfcdf9d4dc970bbb29b430dc755f4856abe31e7ef55bc29",
         "package.json": "4bf2a223acfb7c6dc6c01c37a0b773f704a82060f9d79b812590c4fa69efcf7b",
         "src/cache-manager.js": "3dcfc6240e40c7828d9b5f82cd684242e141a05b09400b75040f68cf9a572859",
         "src/command.js": "9d0bd5da069ae991ab61f5c8e119eb43348e6e14f5de73c0d35f64e7b715014d",
