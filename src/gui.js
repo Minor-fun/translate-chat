@@ -107,202 +107,100 @@ class Gui {
         switch (section) {
             // 主菜单
             case "index":
-                // 基本设置
-                tmpData.push(this._createTitle(t('basicSettings')), ...this._createBreak(), this._createSpace(0));
+                // ========== 基本设置区域 ==========
+                tmpData.push(this._createSectionHeader(t('basicSettings')));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
                 tmpData.push(
-                    this._createToggle(t('moduleEnabled'), cfg.enabled, `${this.cmd} config enabled ${!cfg.enabled};${this.cmd} gui`),
-                    { "text": "&nbsp;&nbsp;" },
-                    this._createToggle(t('sendMode'), cfg.sendMode, `${this.cmd} config sendMode ${!cfg.sendMode};${this.cmd} gui`)
+                    this._createInfoText(t('moduleEnabled') + ': '),
+                    this._createToggle(t(cfg.enabled ? 'enabled' : 'disabled'), cfg.enabled, `${this.cmd} config enabled ${!cfg.enabled};${this.cmd} gui`)
                 );
-                tmpData.push(...this._createBreak(2));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(
+                    this._createInfoText(t('sendMode') + ': '),
+                    this._createToggle(t(cfg.sendMode ? 'enabled' : 'disabled'), cfg.sendMode, `${this.cmd} config sendMode ${!cfg.sendMode};${this.cmd} gui`)
+                );
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createDivider());
+                tmpData.push(...this._createBreak());
                 
-                // 翻译引擎状态
+                // ========== 翻译引擎状态区域 ==========
                 const state = this.translator.getEngineState();
-                tmpData.push(this._createTitle(t('engineStatus')), ...this._createBreak(), this._createSpace(0));
-                tmpData.push(this._createInfoText(`${t('currentEngine')}: ${state.fullDisplayName}`));
-                tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('provider')}: ${state.provider}`));
+                tmpData.push(this._createSectionHeader(t('engineStatus')));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`${t('currentEngine')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(state.fullDisplayName, COLORS.cyan));
+                
+                tmpData.push(...this._createBreak(), this._createIndent(1));
+                tmpData.push(this._createInfoText(`${t('provider')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(state.provider, COLORS.cyan));
                 
                 if (state.provider === 'gemini') {
-                    tmpData.push(...this._createBreak(), this._createSpace(0));
-                    tmpData.push(this._createInfoText(`${t('geminiKeys')}: ${t('geminiKeysAvailable', state.totalValidKeys, state.currentGeminiKeyIndex + 1)}`));
+                    tmpData.push(...this._createBreak(), this._createIndent(2));
+                    tmpData.push(this._createInfoText(`└─ ${t('geminiKeys')}: `, COLORS.gray));
+                    tmpData.push(this._createInfoText(t('geminiKeysAvailable', state.totalValidKeys, state.currentGeminiKeyIndex + 1), COLORS.green));
                     
                     if (state.availableModels && state.availableModels.length > 0) {
-                        tmpData.push(...this._createBreak(), this._createSpace(0));
-                        tmpData.push(this._createInfoText(`${t('availableModels')}: ${state.availableModels.join(', ')}`));
+                        tmpData.push(...this._createBreak(), this._createIndent(2));
+                        tmpData.push(this._createInfoText(`└─ ${t('availableModels')}: `, COLORS.gray));
+                        tmpData.push(this._createInfoText(state.availableModels.join(', '), COLORS.cyan));
                     }
                     
                     if (state.currentGeminiKey) {
-                        tmpData.push(...this._createBreak(), this._createSpace(0));
-                        tmpData.push(this._createInfoText(`${t('currentKey')}: ${state.currentGeminiKey}`));
+                        tmpData.push(...this._createBreak(), this._createIndent(2));
+                        tmpData.push(this._createInfoText(`└─ ${t('currentKey')}: `, COLORS.gray));
+                        tmpData.push(this._createInfoText(state.currentGeminiKey, COLORS.green));
                     }
                 }
                 
                 if (state.provider === 'openai' || state.provider === 'hunyuan') {
-                    tmpData.push(...this._createBreak(), this._createSpace(0));
-                    tmpData.push(this._createInfoText(`${t('currentEngine')}: ${state.model}`));
+                    tmpData.push(...this._createBreak(), this._createIndent(2));
+                    tmpData.push(this._createInfoText(`└─ ${t('currentEngine')}: `, COLORS.gray));
+                    tmpData.push(this._createInfoText(state.model, COLORS.cyan));
                 }
                 
                 if (state.errorType) {
-                    tmpData.push(...this._createBreak(), this._createSpace(0));
-                    tmpData.push(this._createInfoText(`${t('errorStatus')}: ${state.errorType}`, COLORS.orange));
+                    tmpData.push(...this._createBreak(), this._createIndent(1));
+                    tmpData.push(this._createInfoText(`⚠ ${t('errorStatus')}: `, COLORS.orange));
+                    tmpData.push(this._createInfoText(state.errorType, COLORS.red));
                 }
                 
-                tmpData.push(...this._createBreak(2));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createDivider());
+                tmpData.push(...this._createBreak());
 
-                // 翻译提供商设置
+                // ========== 翻译提供商设置区域 ==========
                 const translationConfig = cfg.translation || {};
-                tmpData.push(this._createTitle(t('providerSettings')), ...this._createBreak(), this._createSpace(0));
+                tmpData.push(this._createSectionHeader(t('providerSettings')));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
                 
-                TRANSLATION_PROVIDERS.forEach(provider => {
+                TRANSLATION_PROVIDERS.forEach((provider, index) => {
                     tmpData.push(
-                        { "text": `<font color="${translationConfig.provider === provider ? COLORS.green : COLORS.red}" size="+20">[${provider}]</font>`, 
-                          "command": `${this.cmd} config translationProvider ${provider};${this.cmd} gui` }, 
-                        { "text": "&nbsp;&nbsp;" }
+                        { "text": `<font color="${translationConfig.provider === provider ? COLORS.green : COLORS.blue}" size="+20">[${provider}]</font>`, 
+                          "command": `${this.cmd} config translationProvider ${provider};${this.cmd} gui` }
                     );
+                    if (index < TRANSLATION_PROVIDERS.length - 1) {
+                        tmpData.push({ "text": "&nbsp;&nbsp;" });
+                    }
                 });
                 
-                tmpData.push(...this._createBreak(2));
-                
-                // 在API密钥设置部分之前添加Gemini OpenAI兼容模式设置
-                tmpData.push(...this._createBreak(2));
-                
-                // 模型配置
-                tmpData.push(this._createTitle(t('modelSettings')), ...this._createBreak());
-                
-                // OpenAI模型
-                const openaiModel = translationConfig.models?.openai || "";
-                tmpData.push(
-                    this._createSpace(0),
-                    this._createInfoText(`${t('openaiModel')}: `),
-                    { "text": `<font color="${COLORS.green}" size="+20">[${openaiModel}]</font>` },
-                    { "text": "&nbsp;&nbsp;" },
-                    this._createInfoText(`(${this.cmd} config openaiModel ${t('modelPlaceholder')})`, COLORS.gray)
-                );
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createDivider());
                 tmpData.push(...this._createBreak());
                 
-                // 腾讯混元模型
-                const hunyuanModel = translationConfig.models?.hunyuan || "";
-                tmpData.push(
-                    this._createSpace(0),
-                    this._createInfoText(`${t('hunyuanModel')}: `),
-                    { "text": `<font color="${COLORS.green}" size="+20">[${hunyuanModel}]</font>` },
-                    { "text": "&nbsp;&nbsp;" },
-                    this._createInfoText(`(${this.cmd} config hunyuanModel ${t('modelPlaceholder')})`, COLORS.gray)
-                );
-                tmpData.push(...this._createBreak());
-                
-                // Gemini模型
-                const geminiModels = translationConfig.models?.gemini || [];
-                tmpData.push(
-                    this._createSpace(0),
-                    this._createInfoText(`${t('geminiModels')}: `),
-                    { "text": `<font color="${COLORS.green}" size="+20">[${geminiModels.length} ${t('models')}]</font>` },
-                    { "text": "&nbsp;&nbsp;" },
-                    this._createInfoText(`(${this.cmd} config geminiModels ${t('geminiModelsPlaceholder')})`, COLORS.gray)
-                );
-                tmpData.push(...this._createBreak());
-                
-                // 显示Gemini模型列表
-                if (geminiModels.length > 0) {
-                    tmpData.push(...this._createBreak(), this._createSpace(0));
-                    tmpData.push(this._createInfoText(geminiModels.join(', '), COLORS.cyan));
-                }
-                
-                tmpData.push(...this._createBreak(2));
-                
-                // Gemini OpenAI兼容模式设置
-                if (translationConfig.provider === 'gemini') {
-                    tmpData.push(this._createTitle(t('geminiOpenAISettings')), ...this._createBreak());
-                    
-                    // 兼容模式选择
-                    const openAIMode = translationConfig.geminiOpenAIMode || 'cloudflare';
-                    tmpData.push(
-                        this._createSpace(0),
-                        this._createInfoText(`${t('geminiOpenAIMode')}: `),
-                        { "text": `<font color="${COLORS.blue}" size="+20">[${openAIMode}]</font>` },
-                        { "text": "&nbsp;&nbsp;" }
-                    );
-                    
-                    // 模式选择按钮
-                    ['cloudflare', 'official'].forEach(mode => {
-                        tmpData.push(
-                            { "text": `<font color="${openAIMode === mode ? COLORS.green : COLORS.red}" size="+20">[${mode}]</font>`, 
-                              "command": `${this.cmd} config geminiOpenAIMode ${mode};${this.cmd} gui` }, 
-                            { "text": "&nbsp;&nbsp;" }
-                        );
-                    });
-                    
-                    tmpData.push(...this._createBreak());
-                    
-                    // Cloudflare配置（仅当选择cloudflare模式时显示）
-                    if (openAIMode === 'cloudflare') {
-                        // Cloudflare账户ID
-                        const cfAccountId = translationConfig.cloudflareAccountId || '';
-                        tmpData.push(
-                            this._createSpace(0),
-                            this._createInfoText(`${t('cloudflareAccountId')}: `),
-                            { "text": `<font color="${cfAccountId ? COLORS.green : COLORS.red}" size="+20">[${cfAccountId || t('notSet')}]</font>` },
-                            { "text": "&nbsp;&nbsp;" },
-                            this._createInfoText(`(${this.cmd} config cloudflareAccountId ${t('accountIdPlaceholder')})`, COLORS.gray)
-                        );
-                        tmpData.push(...this._createBreak());
-                        
-                        // Cloudflare网关ID
-                        const cfGatewayId = translationConfig.cloudflareGatewayId || '';
-                        tmpData.push(
-                            this._createSpace(0),
-                            this._createInfoText(`${t('cloudflareGatewayId')}: `),
-                            { "text": `<font color="${cfGatewayId ? COLORS.green : COLORS.red}" size="+20">[${cfGatewayId || t('notSet')}]</font>` },
-                            { "text": "&nbsp;&nbsp;" },
-                            this._createInfoText(`(${this.cmd} config cloudflareGatewayId ${t('gatewayIdPlaceholder')})`, COLORS.gray)
-                        );
-                        tmpData.push(...this._createBreak());
-                    }
-                }
-                
-                // API密钥设置
-                tmpData.push(this._createTitle(t('apiKeySettings')), ...this._createBreak());
-                
-                // Gemini密钥
-                const geminiKeys = translationConfig.geminiKeys || [];
-                const validGeminiKeysCount = geminiKeys.filter(key => key && key.trim() !== "").length;
-                tmpData.push(
-                    this._createSpace(0),
-                    this._createInfoText(`${t('geminiKeys')}: ${t('geminiKeysCount', validGeminiKeysCount)}`),
-                    { "text": "&nbsp;&nbsp;" },
-                    this._createInfoText(`(${this.cmd} config geminiKeys ${t('geminiKeysPlaceholder')})`, COLORS.gray)
-                );
-                tmpData.push(...this._createBreak());
-                
-                // OpenAI密钥
-                tmpData.push(
-                    this._createSpace(0),
-                    this._createInfoText(`${t('openaiKey')}: `),
-                    { "text": `<font color="${translationConfig.openaiKey ? COLORS.green : COLORS.red}" size="+20">[${translationConfig.openaiKey ? t('keySet') : t('keyNotSet')}]</font>` },
-                    { "text": "&nbsp;&nbsp;" },
-                    this._createInfoText(`(${this.cmd} config openaiKey ${t('keyPlaceholder')})`, COLORS.gray)
-                );
-                tmpData.push(...this._createBreak());
-                
-                // 腾讯混元密钥
-                tmpData.push(
-                    this._createSpace(0),
-                    this._createInfoText(`${t('hunyuanKey')}: `),
-                    { "text": `<font color="${translationConfig.hunyuanKey ? COLORS.green : COLORS.red}" size="+20">[${translationConfig.hunyuanKey ? t('keySet') : t('keyNotSet')}]</font>` },
-                    { "text": "&nbsp;&nbsp;" },
-                    this._createInfoText(`(${this.cmd} config hunyuanKey ${t('keyPlaceholder')})`, COLORS.gray)
-                );
-                tmpData.push(...this._createBreak(2));
-                
-                // 缓存统计信息
+                // ========== 缓存设置区域 ==========
                 const cacheStats = this.translator.getCacheStats();
                 const dupStats = this.translator.getDuplicateStats();
                 const cacheSettings = cfg.cache || {};
                 
+                tmpData.push(this._createSectionHeader(t('cacheSettings')));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
                 tmpData.push(
-                    this._createTitle(t('cacheSettings')),
-                    ...this._createBreak(),
-                    this._createSpace(0),
+                    this._createInfoText(t('cacheSettings') + ': '),
                     this._createToggle(t(cfg.useCache ? 'enabled' : 'disabled'), cfg.useCache, `${this.cmd} config useCache ${!cfg.useCache};${this.cmd} gui`)
                 );
                 
@@ -312,137 +210,362 @@ class Gui {
                     const totalRequests = cacheStats.hits + cacheStats.misses;
                     
                     // 基础信息组
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('basicInfo')}:`, COLORS.cyan));
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('cacheStatus', cacheStats.size, cacheStats.maxSize, usedPercentage)}`));
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('hitStats', cacheStats.hitRate, cacheStats.hits, cacheStats.misses, totalRequests)}`));
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('cacheState', t(cacheStats.enabled ? 'cacheStateEnabled' : 'cacheStateDisabled'), cacheStats.modified ? t('cacheModified') : '')}`));
-                    tmpData.push(...this._createBreak(), this._createSpace(0));
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(1));
+                    tmpData.push(this._createInfoText(`📊 ${t('basicInfo')}`, COLORS.purple));
+                    
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`• ${t('cacheStatus', cacheStats.size, cacheStats.maxSize, usedPercentage)}`));
+                    
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`• ${t('hitStats', cacheStats.hitRate, cacheStats.hits, cacheStats.misses, totalRequests)}`));
+                    
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`• ${t('cacheState', t(cacheStats.enabled ? 'cacheStateEnabled' : 'cacheStateDisabled'), cacheStats.modified ? t('cacheModified') : '')}`));
                     
                     // 自动保存间隔
                     const autoSaveInterval = cacheSettings.autoSaveInterval || 0;
-                    tmpData.push(this._createInfoText(`${t('autoSave', autoSaveInterval ? t('autoSaveMinutes', autoSaveInterval) : t('autoSaveDisabled'), cacheStats.added, cacheStats.saves)}`));
-                    tmpData.push(...this._createBreak(), this._createSpace(0), { "text": `<font color="${COLORS.blue}" size="+20">[${t('saveNow')}]</font>`, "command": `${this.cmd} cache save;${this.cmd} gui` });
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`• ${t('autoSave', autoSaveInterval ? t('autoSaveMinutes', autoSaveInterval) : t('autoSaveDisabled'), cacheStats.added, cacheStats.saves)}`));
+                    tmpData.push({ "text": "&nbsp;&nbsp;" });
+                    tmpData.push({ "text": `<font color="${COLORS.blue}" size="+20">[💾 ${t('saveNow')}]</font>`, "command": `${this.cmd} cache save;${this.cmd} gui` });
                     
                     // 去重功能相关
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('deduplication')}:`, COLORS.cyan));
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('deduplication')}: ${t(cacheSettings.deduplicateResults ? 'enabled' : 'disabled')}`));
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(1));
+                    tmpData.push(this._createInfoText(`🔄 ${t('deduplication')}`, COLORS.purple));
+                    
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`• ${t('deduplication')}: ${t(cacheSettings.deduplicateResults ? 'enabled' : 'disabled')}`));
                     
                     // 去重效果组
                     if (dupStats && cacheSettings.deduplicateResults) {
-                        tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('dedupeEffects')}:`, COLORS.cyan));
-                        tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('memoryOptimization', dupStats.uniqueResults, cacheStats.size, dupStats.deduplicationSavings)}`));
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(this._createIndent(2));
+                        tmpData.push(this._createInfoText(`• ${t('memoryOptimization', dupStats.uniqueResults, cacheStats.size, dupStats.deduplicationSavings)}`, COLORS.green));
                         
                         if (dupStats.runtimeStats) {
                             const rs = dupStats.runtimeStats;
-                            tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('performanceOptimization', rs.duplicatesSkipped || 0, rs.deduplicationRate || '0%')}`));
+                            tmpData.push(...this._createBreak());
+                            tmpData.push(this._createIndent(2));
+                            tmpData.push(this._createInfoText(`• ${t('performanceOptimization', rs.duplicatesSkipped || 0, rs.deduplicationRate || '0%')}`, COLORS.cyan));
                         }
                         
                         if (dupStats.duplicateGroups > 0) {
-                            tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('duplicateData', dupStats.duplicateGroups, dupStats.duplicateCount)}`));
+                            tmpData.push(...this._createBreak());
+                            tmpData.push(this._createIndent(2));
+                            tmpData.push(this._createInfoText(`• ${t('duplicateData', dupStats.duplicateGroups, dupStats.duplicateCount)}`, COLORS.yellow));
                         }
                         
                         if (dupStats.stringPool) {
-                            tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('textReuse', cacheStats.stringPoolSize || 0)}`));
+                            tmpData.push(...this._createBreak());
+                            tmpData.push(this._createIndent(2));
+                            tmpData.push(this._createInfoText(`• ${t('textReuse', cacheStats.stringPoolSize || 0)}`, COLORS.cyan));
                         }
                     }
                     
+                    // 配置选项组
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(1));
+                    tmpData.push(this._createInfoText(`⚙️ ${t('cacheSettings')}`, COLORS.purple));
+                    
                     // 缓存大小设置
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('maxCacheEntries')}:`, COLORS.gray), { "text": "&nbsp;" });
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`${t('maxCacheEntries')}: `, COLORS.gray));
                     tmpData.push(...this._createValueButtons([10000, 20000, 40000, 50000, 100000], cacheSettings.maxSize, `${this.cmd} config cacheMaxSize`));
                     
                     // 自动保存间隔设置
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('autoSaveInterval')}:`, COLORS.gray), { "text": "&nbsp;" });
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`${t('autoSaveInterval')}: `, COLORS.gray));
                     const currentInterval = cacheSettings.autoSaveInterval || 0;
                     tmpData.push(...this._createValueButtons([1, 5, 10, 30, 60], currentInterval, `${this.cmd} config cacheInterval`, (a, b) => Math.abs(a - b) < 0.1));
                     
                     // 日志级别设置
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('logLevel')}:`, COLORS.gray), { "text": "&nbsp;" });
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`${t('logLevel')}: `, COLORS.gray));
                     tmpData.push(...this._createValueButtons(LOG_LEVELS, cacheSettings.logLevel, `${this.cmd} config cacheLogLevel`));
                     
                     // 其他缓存选项
-                    tmpData.push(...this._createBreak(), this._createSpace(0));
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`${t('longTextHash')}: `, COLORS.gray));
                     tmpData.push(
-                        this._createToggle(t('longTextHash'), cacheSettings.hashLongText, `${this.cmd} config cacheHashEnabled ${!cacheSettings.hashLongText};${this.cmd} gui`),
-                        { "text": "&nbsp;&nbsp;" },
-                        this._createToggle(t('dedupeResults'), cacheSettings.deduplicateResults, `${this.cmd} config cacheDedupe ${!cacheSettings.deduplicateResults};${this.cmd} gui`)
+                        this._createToggle(t(cacheSettings.hashLongText ? 'enabled' : 'disabled'), cacheSettings.hashLongText, `${this.cmd} config cacheHashEnabled ${!cacheSettings.hashLongText};${this.cmd} gui`)
+                    );
+                    tmpData.push({ "text": "&nbsp;&nbsp;" });
+                    tmpData.push(this._createInfoText(`${t('dedupeResults')}: `, COLORS.gray));
+                    tmpData.push(
+                        this._createToggle(t(cacheSettings.deduplicateResults ? 'enabled' : 'disabled'), cacheSettings.deduplicateResults, `${this.cmd} config cacheDedupe ${!cacheSettings.deduplicateResults};${this.cmd} gui`)
                     );
                     
                     // 长文本阈值设置
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('longTextThreshold')}:`, COLORS.gray), { "text": "&nbsp;" });
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`${t('longTextThreshold')}: `, COLORS.gray));
                     tmpData.push(...this._createValueButtons([10, 20, 30, 50, 100], cacheSettings.longTextThreshold, `${this.cmd} config cacheThreshold`));
                     
                     // 写入阈值设置
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('writeThreshold')}:`, COLORS.gray), { "text": "&nbsp;" });
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`${t('writeThreshold')}: `, COLORS.gray));
                     tmpData.push(...this._createValueButtons([50, 100, 200, 500], cacheSettings.writeThreshold, `${this.cmd} config cacheWriteThreshold`));
                     
                     // 清理百分比设置
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('cleanupPercentage')}:`, COLORS.gray), { "text": "&nbsp;" });
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`${t('cleanupPercentage')}: `, COLORS.gray));
                     tmpData.push(...this._createValueButtons([0.1, 0.2, 0.3, 0.5], cacheSettings.cleanupPercentage, `${this.cmd} config cacheCleanupPercentage`, (a, b) => Math.abs(a - b) < 0.01));
                 }
                 
-                tmpData.push(...this._createBreak(2));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createDivider());
+                tmpData.push(...this._createBreak());
+                
+                // ========== 模型配置区域 ==========
+                tmpData.push(this._createSectionHeader(t('modelSettings')));
+                
+                // OpenAI模型
+                const openaiModel = translationConfig.models?.openai || "";
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`• ${t('openaiModel')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(openaiModel || t('notSet'), openaiModel ? COLORS.cyan : COLORS.red));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(this._createInfoText(`(${this.cmd} config openaiModel ${t('modelPlaceholder')})`, COLORS.gray));
+                
+                // 腾讯混元模型
+                const hunyuanModel = translationConfig.models?.hunyuan || "";
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`• ${t('hunyuanModel')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(hunyuanModel || t('notSet'), hunyuanModel ? COLORS.cyan : COLORS.red));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(this._createInfoText(`(${this.cmd} config hunyuanModel ${t('modelPlaceholder')})`, COLORS.gray));
+                
+                // Gemini模型
+                const geminiModels = translationConfig.models?.gemini || [];
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`• ${t('geminiModels')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(`${geminiModels.length} ${t('models')}`, geminiModels.length > 0 ? COLORS.cyan : COLORS.red));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(this._createInfoText(`(${this.cmd} config geminiModels ${t('geminiModelsPlaceholder')})`, COLORS.gray));
+                
+                // 显示Gemini模型列表
+                if (geminiModels.length > 0) {
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`└─ ${geminiModels.join(', ')}`, COLORS.green));
+                }
+                
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createDivider());
+                tmpData.push(...this._createBreak());
+                
+                // ========== API密钥设置区域 ==========
+                tmpData.push(this._createSectionHeader(t('apiKeySettings')));
+                
+                // Gemini密钥
+                const geminiKeys = translationConfig.geminiKeys || [];
+                const validGeminiKeysCount = geminiKeys.filter(key => key && key.trim() !== "").length;
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`• ${t('geminiKeys')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(t('geminiKeysCount', validGeminiKeysCount), validGeminiKeysCount > 0 ? COLORS.green : COLORS.red));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(this._createInfoText(`(${this.cmd} config geminiKeys ${t('geminiKeysPlaceholder')})`, COLORS.gray));
+                
+                // OpenAI密钥
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`• ${t('openaiKey')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(translationConfig.openaiKey ? t('keySet') : t('keyNotSet'), translationConfig.openaiKey ? COLORS.green : COLORS.red));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(this._createInfoText(`(${this.cmd} config openaiKey ${t('keyPlaceholder')})`, COLORS.gray));
+                
+                // 腾讯混元密钥
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`• ${t('hunyuanKey')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(translationConfig.hunyuanKey ? t('keySet') : t('keyNotSet'), translationConfig.hunyuanKey ? COLORS.green : COLORS.red));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(this._createInfoText(`(${this.cmd} config hunyuanKey ${t('keyPlaceholder')})`, COLORS.gray));
+                
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createDivider());
+                tmpData.push(...this._createBreak());
+                
+                // ========== Gemini OpenAI兼容模式设置区域 ==========
+                if (translationConfig.provider === 'gemini') {
+                    tmpData.push(this._createSectionHeader(t('geminiOpenAISettings')));
+                    
+                    // 兼容模式选择
+                    const openAIMode = translationConfig.geminiOpenAIMode || 'cloudflare';
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(1));
+                    tmpData.push(this._createInfoText(`${t('geminiOpenAIMode')}: `, COLORS.gray));
+                    
+                    ['cloudflare', 'official'].forEach((mode, index) => {
+                        tmpData.push(
+                            { "text": `<font color="${openAIMode === mode ? COLORS.green : COLORS.blue}" size="+20">[${mode}]</font>`, 
+                              "command": `${this.cmd} config geminiOpenAIMode ${mode};${this.cmd} gui` }
+                        );
+                        if (index === 0) {
+                            tmpData.push({ "text": "&nbsp;&nbsp;" });
+                        }
+                    });
+                    
+                    // Cloudflare配置（仅当选择cloudflare模式时显示）
+                    if (openAIMode === 'cloudflare') {
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(this._createIndent(1));
+                        tmpData.push(this._createInfoText(`Cloudflare ${t('apiKeySettings')}:`, COLORS.purple));
+                        
+                        // Cloudflare账户ID
+                        const cfAccountId = translationConfig.cloudflareAccountId || '';
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(this._createIndent(2));
+                        tmpData.push(this._createInfoText(`• Account ID: `, COLORS.gray));
+                        tmpData.push(this._createInfoText(cfAccountId || t('notSet'), cfAccountId ? COLORS.cyan : COLORS.red));
+                        
+                        // Cloudflare网关ID
+                        const cfGatewayId = translationConfig.cloudflareGatewayId || '';
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(this._createIndent(2));
+                        tmpData.push(this._createInfoText(`• Gateway ID: `, COLORS.gray));
+                        tmpData.push(this._createInfoText(cfGatewayId || t('notSet'), cfGatewayId ? COLORS.cyan : COLORS.red));
+                    }
+                    
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createDivider());
+                    tmpData.push(...this._createBreak());
+                }
+                
+                // ========== 界面语言设置区域 ==========
+                const currentInterfaceLang = this.translator.getInterfaceLanguage();
+                tmpData.push(this._createSectionHeader(t('interfaceLanguage')));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(...this._createLangButtons(COMMON_LANGS, currentInterfaceLang, `${this.cmd} config interfaceLanguage`));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createDivider());
+                tmpData.push(...this._createBreak());
 
-                // 术语库统计信息
+                // ========== 语言设置区域 ==========
+                tmpData.push(this._createSectionHeader(t('languageSettings')));
+                
+                // 源语言设置
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`📥 ${t('sourceLanguage')}`, COLORS.gray));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                const sourceLangs = ['auto', ...COMMON_LANGS];
+                tmpData.push(...this._createLangButtons(sourceLangs, cfg.sourceLang, `${this.cmd} config sourceLang`));
+                
+                // 目标语言设置
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`📤 ${t('targetLanguage')}`, COLORS.gray));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.targetLang, `${this.cmd} config targetLang`));
+                
+                // 发送语言设置
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`💬 ${t('sendLanguage')}`, COLORS.gray));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.sendLang, `${this.cmd} config sendLang`));
+                
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createDivider());
+                tmpData.push(...this._createBreak());
+
+                // ========== 术语库设置区域 ==========
                 const termStats = this.translator.getTerminologyStats();
                 
+                tmpData.push(this._createSectionHeader(t('terminologySettings')));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
                 tmpData.push(
-                    this._createTitle(t('terminologySettings')),
-                    ...this._createBreak(),
-                    this._createSpace(0),
+                    this._createInfoText(t('terminologySettings') + ': '),
                     this._createToggle(t(cfg.useTerminology ? 'enabled' : 'disabled'), cfg.useTerminology, `${this.cmd} config useTerminology ${!cfg.useTerminology};${this.cmd} gui`)
                 );
                 
                 if (termStats) {
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('termStats')}:`, COLORS.cyan));
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('totalTerms', termStats.totalTerms || 0)}`));
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(1));
+                    tmpData.push(this._createInfoText(`📚 ${t('termStats')}`, COLORS.purple));
+                    
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(2));
+                    tmpData.push(this._createInfoText(`• ${t('totalTerms', termStats.totalTerms || 0)}`, COLORS.cyan));
                     
                     // 显示语言覆盖情况
                     if (termStats.languageCoverage) {
-                        tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('languageCoverage')}:`, COLORS.cyan));
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(this._createIndent(1));
+                        tmpData.push(this._createInfoText(`🌐 ${t('languageCoverage')}`, COLORS.purple));
                         
                         for (const [lang, count] of Object.entries(termStats.languageCoverage)) {
-                            tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${lang}: ${count}${t('totalTerms', '').replace(/:.+/, '')}`));
+                            tmpData.push(...this._createBreak());
+                            tmpData.push(this._createIndent(2));
+                            tmpData.push(this._createInfoText(`• ${lang}: ${count}${t('totalTerms', '').replace(/:.+/, '')}`, COLORS.cyan));
                         }
                     }
                     
                     // 显示置信度分布
                     if (termStats.confidenceDistribution) {
                         const { high, medium, low } = termStats.confidenceDistribution;
-                        tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('confidenceDistribution')}:`, COLORS.cyan));
-                        tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('high', high)}`, COLORS.green));
-                        tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('medium', medium)}`, COLORS.yellow));
-                        tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('low', low)}`, COLORS.orange));
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(this._createIndent(1));
+                        tmpData.push(this._createInfoText(`📊 ${t('confidenceDistribution')}`, COLORS.purple));
+                        
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(this._createIndent(2));
+                        tmpData.push(this._createInfoText(`• ${t('high', high)}`, COLORS.green));
+                        
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(this._createIndent(2));
+                        tmpData.push(this._createInfoText(`• ${t('medium', medium)}`, COLORS.yellow));
+                        
+                        tmpData.push(...this._createBreak());
+                        tmpData.push(this._createIndent(2));
+                        tmpData.push(this._createInfoText(`• ${t('low', low)}`, COLORS.orange));
                     }
                     
                     // 术语库操作说明
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('addTerm')}: ${this.cmd} term add [${t('originalPlaceholder')}] [${t('translatedPlaceholder')}]`, COLORS.gray));
-                    tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(`${t('searchTerm')}: ${this.cmd} term search [${t('keywordPlaceholder')}]`, COLORS.gray));
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(1));
+                    tmpData.push(this._createInfoText(`💡 ${t('addTerm')}: ${this.cmd} term add [${t('originalPlaceholder')}] [${t('translatedPlaceholder')}]`, COLORS.gray));
+                    tmpData.push(...this._createBreak());
+                    tmpData.push(this._createIndent(1));
+                    tmpData.push(this._createInfoText(`💡 ${t('searchTerm')}: ${this.cmd} term search [${t('keywordPlaceholder')}]`, COLORS.gray));
                 }
-                
-                tmpData.push(...this._createBreak(2));
-
-                // 界面语言设置（移动到最下面）
-                const currentInterfaceLang = this.translator.getInterfaceLanguage();
-                tmpData.push(this._createTitle(t('interfaceLanguage')), ...this._createBreak(), this._createSpace(0));
-                tmpData.push(...this._createLangButtons(COMMON_LANGS, currentInterfaceLang, `${this.cmd} config interfaceLanguage`));
-                tmpData.push(...this._createBreak(2));
-
-                // 语言设置（移动到最下面）
-                tmpData.push(this._createTitle(t('languageSettings')), ...this._createBreak());
-                
-                // 源语言设置
-                tmpData.push(this._createInfoText(t('sourceLanguage'), COLORS.gray), { "text": "&nbsp;" });
-                const sourceLangs = ['auto', ...COMMON_LANGS];
-                tmpData.push(...this._createLangButtons(sourceLangs, cfg.sourceLang, `${this.cmd} config sourceLang`));
-                
-                // 目标语言设置
-                tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(t('targetLanguage'), COLORS.gray), { "text": "&nbsp;" });
-                tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.targetLang, `${this.cmd} config targetLang`));
-                
-                // 发送语言设置
-                tmpData.push(...this._createBreak(), this._createSpace(0), this._createInfoText(t('sendLanguage'), COLORS.gray), { "text": "&nbsp;" });
-                tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.sendLang, `${this.cmd} config sendLang`));
-                tmpData.push(...this._createBreak(2));
 
                 break;
         }
@@ -460,6 +583,22 @@ class Gui {
     // 辅助函数，创建标题
     _createTitle(text) {
         return { "text": `<font color="${COLORS.yellow}" size="+24">${text}:</font>` };
+    }
+
+    // 辅助函数，创建区域标题（带装饰）
+    _createSectionHeader(text) {
+        return { "text": `<font color="${COLORS.yellow}" size="+24">${text}</font>` };
+    }
+
+    // 辅助函数，创建分隔线
+    _createDivider() {
+        return { "text": `<font color="${COLORS.gray}">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</font>` };
+    }
+
+    // 辅助函数，创建缩进
+    _createIndent(level = 1) {
+        const indent = "&nbsp;&nbsp;&nbsp;&nbsp;".repeat(level);
+        return { "text": indent };
     }
 
     // 辅助函数，创建间距

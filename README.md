@@ -43,7 +43,7 @@ The plugin uses Google Translate by default and can be used without any configur
     *   **Source Language**: `auto` (auto-detect) is recommended by default.
     *   **Target Language**: Set the language you wish to receive messages translated into (e.g., `zh` for Chinese, `en` for English).
     *   **Send Language**: Set the language you wish your sent messages to be translated into (e.g., `en` for English).
-    *   **Note**: When sending a message, include "#" anywhere in the message to skip send mode translation and send the original message directly. This is convenient for communicating with players who speak the same language in-game.
+    *   **Note**: When sending a message, append "#" to the end to skip send mode translation and send the original message directly. This is convenient for communicating with players who speak the same language in-game.
 
 2.  **Step Two: Select Translation Engine (or configure AI engine)**
     *   **Default Use of Google Translate**: The plugin is ready to use out-of-the-box, no extra configuration needed.

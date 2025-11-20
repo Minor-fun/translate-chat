@@ -92,9 +92,20 @@ module.exports = class Translator {
     const outgoingMessageHandler = (packet, version, event) => {
       if (!this.mod.settings.enabled || !this.mod.settings.sendMode) return;
       
-      // 检查消息是否包含#标记，如果是则移除标记并直接发送
-      if (event.message.includes('#')) {
-        this.mod.send(packet, version, { ...event, message: event.message.replace(/#/g, '') });
+      // 检查消息是否包含游戏特殊链接标签（物品、传送点等），如果是则直接发送
+      if (event.message.includes('ChatLinkAction') || event.message.includes('chatLinkAction')) {
+        this.mod.send(packet, version, event);
+        return false;
+      }
+      
+      // 提取纯文本内容（去除所有HTML标签）用于检测#标记
+      const plainText = event.message.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, '');
+      
+      // 检查纯文本中是否以#结尾（用户手动标记跳过翻译）
+      if (plainText.endsWith('#')) {
+        // 从纯文本中移除尾部#，但保持原消息的HTML结构
+        const newPlainText = plainText.slice(0, -1);
+        this.mod.send(packet, version, { ...event, message: event.message.replace(plainText, newPlainText) });
         return false;
       }
 

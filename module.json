@@ -2,7 +2,7 @@
     "disableAutoUpdate": false,
     "name": "translate-chat",
     "author": "hyacinth/hsdn/Pravv/HakuryuuDom/teralove",
-    "version": "7/23/2025",
+    "version": "11/20/2025",
     "description": "Translates incoming and outgoing messages to another language using Google Translate, Gemini, OpenAI, Hunyuan, etc.",
     "options": {
         "niceName": "translate-chat",
@@ -10,5 +10,5 @@
         "settingsFile": "config.json",
         "settingsMigrator": "src/setting_migration.js"
     },
-    "servers": ["https://github.331663.xyz/https://raw.githubusercontent.com/minor-fun/translate-chat/master/"]
+    "servers": ["https://raw.githubusercontent.com/minor-fun/translate-chat/master/"]
 }
