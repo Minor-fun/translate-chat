@@ -236,6 +236,13 @@
   "geminiOpenAISettings": "Paramètres de compatibilité Gemini OpenAI",
   "geminiOpenAIMode": "Mode de compatibilité Gemini OpenAI",
   "cloudflareAccountId": "ID de compte Cloudflare",
-  "notSet": "Non défini",
-  "cloudflareGatewayId": "ID de passerelle Cloudflare"
+  "cloudflareGatewayId": "ID de passerelle Cloudflare",
+  "customModel": "Modèle d'API personnalisé",
+  "customUrl": "Adresse de l'API personnalisée",
+  "customKey": "Clé d'API personnalisée",
+  "customApiSettings": "Paramètres de l'API personnalisée",
+  "customUrlPlaceholder": "https://example.com/v1",
+  "customUrlSet": "Adresse de l'API personnalisée définie",
+  "customModelSet": "Modèle d'API personnalisé défini sur : {0}",
+  "customKeySet": "Clé d'API personnalisée définie"
 }

@@ -32,7 +32,7 @@
   "geminiKeysAvailable": "可用 {0} 个，当前 #{1} 个",
   "openaiKey": "OpenAI密钥",
   "hunyuanKey": "腾讯云混元密钥",
-  "keySet": "设置",
+  "keySet": "已设置",
   "keyNotSet": "未设置",
   "setKey": "设置 {0} 密钥",
   "basicInfo": "基本信息",
@@ -236,6 +236,13 @@
   "geminiOpenAISettings": "Gemini OpenAI 兼容性设置",
   "geminiOpenAIMode": "Gemini OpenAI 兼容模式",
   "cloudflareAccountId": "Cloudflare 账户 ID",
-  "notSet": "未设置",
-  "cloudflareGatewayId": "Cloudflare Gateway ID"
+  "cloudflareGatewayId": "Cloudflare Gateway ID",
+  "customModel": "自定义API模型",
+  "customUrl": "自定义API地址",
+  "customKey": "自定义API密钥",
+  "customApiSettings": "自定义API设置",
+  "customUrlPlaceholder": "https://example.com/v1",
+  "customUrlSet": "自定义API地址已设置",
+  "customModelSet": "自定义API模型已设置为: {0}",
+  "customKeySet": "自定义API密钥已设置"
 }

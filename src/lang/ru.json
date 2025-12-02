@@ -236,6 +236,13 @@
   "geminiOpenAISettings": "Настройки совместимости Gemini с OpenAI",
   "geminiOpenAIMode": "Режим совместимости Gemini с OpenAI",
   "cloudflareAccountId": "ID аккаунта Cloudflare",
-  "notSet": "Не установлен",
-  "cloudflareGatewayId": "ID шлюза Cloudflare"
+  "cloudflareGatewayId": "ID шлюза Cloudflare",
+  "customModel": "Пользовательская модель API",
+  "customUrl": "Пользовательский адрес API",
+  "customKey": "Пользовательский ключ API",
+  "customApiSettings": "Настройки пользовательского API",
+  "customUrlPlaceholder": "https://example.com/v1",
+  "customUrlSet": "Пользовательский адрес API установлен",
+  "customModelSet": "Пользовательская модель API установлена на: {0}",
+  "customKeySet": "Пользовательский ключ API установлен"
 }

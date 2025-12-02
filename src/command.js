@@ -9,7 +9,7 @@ const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'none'];
 /**
  * 翻译提供商选项
  */
-const TRANSLATION_PROVIDERS = ['google', 'gemini', 'openai', 'hunyuan'];
+const TRANSLATION_PROVIDERS = ['google', 'gemini', 'openai', 'hunyuan', 'custom'];
 
 /**
  * Gemini OpenAI兼容模式选项
@@ -317,6 +317,36 @@ const SETTINGS_SCHEMA = {
       utils.setModuleSettings(mod.settings);
       mod.command.message(utils.t('keySet', utils.t('hunyuanKey')));
     }
+  },
+  'customUrl': {
+    type: 'string',
+    default: '',
+    description: '自定义API URL',
+    path: 'translation.customUrl',
+    applyEffect: (value, mod, utils) => {
+      utils.setModuleSettings(mod.settings);
+      mod.command.message(utils.t('customUrlSet'));
+    }
+  },
+  'customKey': {
+    type: 'string',
+    default: '',
+    description: '自定义API密钥',
+    path: 'translation.customKey',
+    applyEffect: (value, mod, utils) => {
+      utils.setModuleSettings(mod.settings);
+      mod.command.message(utils.t('keySet', 'Custom'));
+    }
+  },
+  'customModel': {
+    type: 'string',
+    default: '',
+    description: '自定义API模型',
+    path: 'translation.models.custom',
+    applyEffect: (value, mod, utils) => {
+      utils.setModuleSettings(mod.settings);
+      mod.command.message(utils.t('modelSet', 'Custom', value));
+    }
   }
 };
 
@@ -519,6 +549,10 @@ class CommandHandler {
         geminiKeys: (value) => this.configHandler.handleConfigCommand('geminiKeys', value),
         openaiKey: (value) => this.configHandler.handleConfigCommand('openaiKey', value),
         hunyuanKey: (value) => this.configHandler.handleConfigCommand('hunyuanKey', value),
+        // 自定义API设置
+        customUrl: (value) => this.configHandler.handleConfigCommand('customUrl', value),
+        customKey: (value) => this.configHandler.handleConfigCommand('customKey', value),
+        customModel: (value) => this.configHandler.handleConfigCommand('customModel', value),
         // 缓存设置
         useCache: (value) => this.configHandler.handleConfigCommand('useCache', value),
         cacheMaxSize: (value) => this.configHandler.handleConfigCommand('cacheMaxSize', value),

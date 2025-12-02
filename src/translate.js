@@ -8,18 +8,115 @@ const lngDetector = new LanguageDetect();
 lngDetector.setLanguageType('iso2'); 
 
 // AI Translation Configuration
-let AI_PROVIDER; // 可选值: "openai", "hunyuan", "gemini", "google"
+let AI_PROVIDER;
 
-// Gemini API密钥配置 - 按顺序轮换机制（自动跳过空密钥）
+// Gemini API密钥配置 - 模型层级优先 + Key轮询
 let GEMINI_KEYS = [];
 let geminiKeyIndex = 0;
 
-// 获取有效的Gemini密钥
+// Key状态跟踪系统 - 只跟踪失败次数和冷却时间
+class KeyStateTracker {
+  constructor() {
+    // 每个Key+模型组合的状态: "keyIndex:model" -> { consecutiveFailures, cooldownUntil }
+    this.keyModelStates = new Map();
+  }
+
+  /**
+   * 生成Key+模型组合的唯一键
+   */
+  getStateKey(keyIndex, model) {
+    return `${keyIndex}:${model}`;
+  }
+
+  /**
+   * 检查Key+模型组合是否在冷却期
+   */
+  isInCooldown(keyIndex, model) {
+    const stateKey = this.getStateKey(keyIndex, model);
+    const state = this.keyModelStates.get(stateKey);
+    if (!state) return false;
+    
+    const inCooldown = Date.now() < state.cooldownUntil;
+    if (!inCooldown && state.cooldownUntil > 0) {
+      // 冷却期结束，重置失败计数
+      state.consecutiveFailures = 0;
+      state.cooldownUntil = 0;
+    }
+    return inCooldown;
+  }
+
+  /**
+   * 获取冷却剩余时间（秒）
+   */
+  getCooldownRemaining(keyIndex, model) {
+    const stateKey = this.getStateKey(keyIndex, model);
+    const state = this.keyModelStates.get(stateKey);
+    if (!state) return 0;
+    
+    const remaining = Math.max(0, state.cooldownUntil - Date.now());
+    return Math.ceil(remaining / 1000);
+  }
+
+  /**
+   * 记录失败 - 连续失败2次后进入冷却
+   */
+  recordFailure(keyIndex, model) {
+    const stateKey = this.getStateKey(keyIndex, model);
+    let state = this.keyModelStates.get(stateKey);
+    
+    if (!state) {
+      state = { consecutiveFailures: 0, cooldownUntil: 0 };
+      this.keyModelStates.set(stateKey, state);
+    }
+    
+    state.consecutiveFailures++;
+    
+    // 连续失败2次，进入30秒冷却
+    if (state.consecutiveFailures >= 2) {
+      state.cooldownUntil = Date.now() + 30 * 1000;
+      console.log(`[冷却] Key #${keyIndex + 1} 模型 ${model} 连续失败${state.consecutiveFailures}次，冷却30秒`);
+    }
+  }
+
+  /**
+   * 记录成功 - 重置失败计数
+   */
+  recordSuccess(keyIndex, model) {
+    const stateKey = this.getStateKey(keyIndex, model);
+    let state = this.keyModelStates.get(stateKey);
+    
+    if (!state) {
+      state = { consecutiveFailures: 0, cooldownUntil: 0 };
+      this.keyModelStates.set(stateKey, state);
+    }
+    
+    state.consecutiveFailures = 0;
+    state.cooldownUntil = 0;
+  }
+
+  /**
+   * 获取状态摘要
+   */
+  getStateSummary(keyIndex, model) {
+    const stateKey = this.getStateKey(keyIndex, model);
+    const state = this.keyModelStates.get(stateKey) || { consecutiveFailures: 0, cooldownUntil: 0 };
+    
+    return {
+      model,
+      inCooldown: this.isInCooldown(keyIndex, model),
+      cooldownRemaining: this.getCooldownRemaining(keyIndex, model),
+      consecutiveFailures: state.consecutiveFailures
+    };
+  }
+}
+
+// 全局Key状态跟踪器
+const keyStateTracker = new KeyStateTracker();
+
 function getNextValidGeminiKey() {
   const validKeys = GEMINI_KEYS.filter(k => k.trim() !== "");
   if (validKeys.length === 0) return "";
   
-  // 只在有效密钥中循环
   return validKeys[geminiKeyIndex % validKeys.length];
 }
 
@@ -91,6 +188,16 @@ const AI_CONFIGS = {
     model: "Google",
     extraParams: {},
     needsProviderPrefix: false
+  },
+  custom: {
+    get key() { return global.modSettings?.translation?.customKey; },
+    get url() { 
+      const baseUrl = global.modSettings?.translation?.customUrl;
+      return baseUrl ? `${baseUrl}/chat/completions` : '';
+    },
+    get model() { return global.modSettings?.translation?.models?.custom; },
+    extraParams: {},
+    needsProviderPrefix: false
   }
 };
 
@@ -157,10 +264,24 @@ function setModuleSettings(settings) {
 }
 
 // 通用提示词
-const AI_PROMPT = "你是tera国际服资深游戏聊天翻译机，严格遵守翻译规则：1.仅输出译文，不进行任何额外解释。遇到无法翻译的缩写时保持原文（如Oops→Oops）2.请原样保留 [TERM:Valkyrie]符号[]内的文本，不进行任何翻译或修改。 例如，[TERM:Valkyrie] 输出为 [TERM:Valkyrie]。";
+const AI_PROMPT = `你是一名TERA欧服的资深玩家翻译助手。你的任务是翻译游戏聊天窗口的聊天消息，必须严格遵守以下指令：
+
+1. 绝对保护代码标签：
+   - 原文中出现的 [TERM:xxx] 格式（如 [TERM:Valkyrie]）是特殊变量，**必须原样保留**，禁止翻译、修改或移动括号内的内容。
+
+2. **日常交流**：
+   - **日常交流**：如果原文是友善或中性的，译文要礼貌、得体，体现国际友谊。
+   - **冲突对喷**：如果原文包含攻击、嘲讽、脏话或挑衅，**不要试图礼貌化或阉割**。必须用目标语言中最地道的“玩家黑话”反击回去，精准传达原文的攻击性和愤怒值（例如将 "You suck" 译为 "你菜得抠脚" 而非 "你很糟糕"）。
+
+3. 拒绝机翻腔（Gamer Slang）：
+   - 使用MMORPG玩家的自然口语。
+   - 避免书面语，使用简短有力的表达。
+
+4. **输出限制**：
+   - 仅输出译文，不要包含任何解释、引号或前缀。`;
 
 // 定义支持的语言列表
-const AVAILABLE_LANGUAGES = ['am', 'ar', 'az', 'be', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en', 'es', 'et', 'eu', 'fa', 'fi', 'fr', 'gu', 'he', 'hi', 'hr', 'hu', 'hy', 'is', 'it', 'ja', 'ka', 'kn', 'ko', 'ku', 'lo', 'lt', 'lv', 'ml', 'mr', 'ms', 'nl', 'no', 'or', 'pa', 'pl', 'pt', 'ro', 'ru', 'sk', 'sl', 'sq', 'sr', 'sv', 'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'yo', 'zh', 'auto', 'any'];
+const AVAILABLE_LANGUAGES = ['am', 'ar', 'az', 'be', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en', 'es', 'et', 'eu', 'fa', 'fi', 'fr', 'gu', 'he', 'hi', 'hr', 'hu', 'hy', 'is', 'it', 'ja', 'ka', 'kn', 'ko', 'ku', 'lo', 'lt', 'lv', 'ml', 'mr', 'ms', 'nl', 'no', 'or', 'pa', 'pl', 'pt', 'ro', 'ru', 'sk', 'sl', 'sq', 'sr', 'sv', 'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'yo', 'zh', 'zh-TW', 'auto', 'any'];
 
 /**
  * 获取当前使用的翻译提供者名称
@@ -220,6 +341,12 @@ async function translate(text, translateTo, translateFrom = 'auto', useCache = t
     return text;
   }
 
+  // 中文简繁互通
+  const isChineseVariant = (lang) => lang === 'zh' || lang === 'zh-TW';
+  if (detectedLangCode && isChineseVariant(detectedLangCode) && isChineseVariant(translateTo)) {
+    return text;
+  }
+
   // 当源语言为'auto'时，使用检测到的实际语言
   let actualSourceLang = translateFrom === 'auto' && detectedLangCode ? detectedLangCode : translateFrom;
   
@@ -271,7 +398,6 @@ async function translate(text, translateTo, translateFrom = 'auto', useCache = t
 async function tryTranslate(text, translateTo, translateFrom) {
   const config = AI_CONFIGS[AI_PROVIDER];
   let lastError = null; // 记录最后一个错误
-  let aiErrorType = ""; // 新增：用于存储AI翻译的错误类型
 
   // 获取i18n翻译函数
   const translateFunc = i18nInstance ? (key, ...args) => i18nInstance.t(key, ...args) : null;
@@ -291,44 +417,90 @@ async function tryTranslate(text, translateTo, translateFrom) {
     }
   }
 
+  // 如果选择Custom作为提供商，使用自定义API
+  if (AI_PROVIDER === "custom") {
+    const customConfig = AI_CONFIGS.custom;
+    if (customConfig?.key && customConfig.key.trim() !== "" && 
+        customConfig?.url && customConfig.url.trim() !== "" &&
+        customConfig?.model && customConfig.model.trim() !== "") {
+      translationState.model = customConfig.model;
+      try {
+        const result = await translateWithAI(text, translateTo, translateFrom, customConfig);
+        translationState.errorType = "";
+        return result;
+      } catch (e) {
+        lastError = e;
+        const errorInfo = handleTranslationError(e, "custom", translateFunc);
+        translationState.errorType = errorInfo.type;
+        // Custom API失败后回退到Google翻译
+        return fallbackToGoogleTranslate(text, translateTo, translateFrom, translateFunc);
+      }
+    } else {
+      console.warn('Custom API配置不完整，回退到Google翻译');
+      return fallbackToGoogleTranslate(text, translateTo, translateFrom, translateFunc);
+    }
+  }
+
   // 尝试AI翻译
   if (AI_PROVIDER === "gemini") {
-    
     const validKeys = GEMINI_KEYS.filter(k => k.trim() !== "");
-    if (validKeys.length > 0) {
-      // 记住初始状态的密钥索引
-      const initialKeyIndex = geminiKeyIndex;
-      
-      // 尝试每个有效密钥
-      for (let keyAttempt = 0; keyAttempt < validKeys.length; keyAttempt++) {
-        // 获取当前密钥的配置副本
-        const currentKeyConfig = { ...config };
+    const models = config.models || [];
+    
+    if (validKeys.length > 0 && models.length > 0) {
+      // 模型层级优先策略：按模型层级，轮询所有Key
+      for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
+        const currentModel = models[modelIndex];
         
-        try {
-          // 为每个密钥单独调用translateWithAI，让它内部尝试所有模型
-          translationState.model = currentKeyConfig.models?.[0];
-          const result = await translateWithAI(text, translateTo, translateFrom, currentKeyConfig);
-          translationState.errorType = ""; // 成功时清除错误类型
-          aiErrorType = ""; // AI成功，清除AI错误类型
-          return result;
-        } catch (e) {
-          lastError = e; // 记录当前错误
-          // 根据AI服务URL动态确定handleTranslationError的provider参数
-          const effectiveProvider = config.url?.includes('gateway.ai.cloudflare.com') ? 'AIGateway' : AI_PROVIDER;
-          const errorInfo = handleTranslationError(e, effectiveProvider, translateFunc);
-          aiErrorType = errorInfo.type; // 记录AI错误类型
-          translationState.errorType = errorInfo.type; // 立即更新状态，以便getTranslationProvider显示
+        // 对于当前模型，尝试所有可用的Key
+        for (let keyAttempt = 0; keyAttempt < validKeys.length; keyAttempt++) {
+          const currentKeyIndex = geminiKeyIndex % validKeys.length;
           
-          // 当前密钥的所有模型都尝试失败，轮换到下一个密钥
-          geminiKeyIndex++;
+          // 检查Key+模型组合是否在冷却期
+          if (keyStateTracker.isInCooldown(currentKeyIndex, currentModel)) {
+            const cooldownRemaining = keyStateTracker.getCooldownRemaining(currentKeyIndex, currentModel);
+            geminiKeyIndex++;
+            continue;
+          }
+          
+          try {
+            // 准备当前Key的配置
+            const currentKeyConfig = {
+              ...config,
+              key: validKeys[currentKeyIndex],
+              model: currentModel
+            };
+            
+            // 尝试翻译
+            translationState.model = currentModel;
+            const result = await translateWithAI(text, translateTo, translateFrom, currentKeyConfig);
+            
+            // 成功！记录成功状态并重置失败计数
+            keyStateTracker.recordSuccess(currentKeyIndex, currentModel);
+            translationState.errorType = "";
+            
+            // 切换到下一个Key，下次从下一个Key开始
+            geminiKeyIndex++;
+            return result;
+            
+          } catch (e) {
+            lastError = e;
+            
+            // 记录失败（任何错误都记录）
+            keyStateTracker.recordFailure(currentKeyIndex, currentModel);
+            
+            // 根据AI服务URL动态确定handleTranslationError的provider参数
+            const effectiveProvider = config.url?.includes('gateway.ai.cloudflare.com') ? 'AIGateway' : AI_PROVIDER;
+            const errorInfo = handleTranslationError(e, effectiveProvider, translateFunc);
+            translationState.errorType = errorInfo.type;
+            
+            // 切换到下一个Key继续尝试当前模型
+            geminiKeyIndex++;
+          }
         }
+        
       }
       
-      // 如果所有密钥都尝试过，但都失败了，重置到循环开始的密钥
-      // 这保证了下一次翻译从相同的密钥开始（避免额外的密钥轮换）
-      if (geminiKeyIndex - initialKeyIndex >= validKeys.length) {
-        geminiKeyIndex = initialKeyIndex;
-      }
+      // 所有模型和Key的组合都失败了
     }
   } else if (config?.key && config.key.trim() !== "") {
     // 非Gemini AI提供商的处理逻辑保持不变
@@ -336,14 +508,12 @@ async function tryTranslate(text, translateTo, translateFrom) {
     try {
       const result = await translateWithAI(text, translateTo, translateFrom, config);
       translationState.errorType = ""; // 成功时清除错误类型
-      aiErrorType = ""; // AI成功，清除AI错误类型
       return result;
     } catch (e) {
       lastError = e; // 记录当前错误
       // 根据AI服务URL动态确定handleTranslationError的provider参数
       const effectiveProvider = config.url?.includes('gateway.ai.cloudflare.com') ? 'AIGateway' : AI_PROVIDER;
       const errorInfo = handleTranslationError(e, effectiveProvider, translateFunc);
-      aiErrorType = errorInfo.type; // 记录AI错误类型
       translationState.errorType = errorInfo.type; // 立即更新状态，以便getTranslationProvider显示
     }
   }
@@ -385,8 +555,19 @@ async function fallbackToGoogleTranslate(text, translateTo, translateFrom, trans
  * @returns {Promise<string>} 翻译结果
  */
 async function translateWithAI(text, translateTo, translateFrom, config) {
-  const translationPrompt = `Translate from ${translateFrom} to ${translateTo}: ${text}`;
-  const modelsToTry = Array.isArray(config.models) ? config.models : [config.model];
+  // 明确告诉 AI 这是一个游戏聊天语境，有助于它判断语气
+  const translationPrompt = `[Context: TERA Game Chat (MMORPG)]
+  Source Language: ${translateFrom}
+  Target Language: ${translateTo}
+  Original Text:
+  """
+  ${text}
+  """
+  Translation:`;
+  
+  // 支持单个模型或模型数组（向后兼容）
+  const modelsToTry = Array.isArray(config.models) ? config.models : 
+                      config.model ? [config.model] : [];
   let lastError = null;
 
   // 检查URL是否有效
@@ -404,6 +585,7 @@ async function translateWithAI(text, translateTo, translateFrom, config) {
         { role: 'system', content: AI_PROMPT },
         { role: 'user', content: translationPrompt },
       ],
+      temperature: 0.7,
       ...config.extraParams,
     };
     const headers = {
@@ -561,11 +743,37 @@ function getTranslationState() {
   };
   
   // 针对不同提供商添加特定信息
-  if (provider === 'gemini') {
+  if (provider === 'custom') {
+    state.customUrl = global.modSettings?.translation?.customUrl;
+    state.customModel = global.modSettings?.translation?.models?.custom;
+    const customKey = global.modSettings?.translation?.customKey;
+    if (customKey) {
+      state.customKey = customKey.length > 8 ? 
+        `${customKey.substring(0, 4)}...${customKey.substring(customKey.length - 4)}` : 
+        '****';
+    }
+  } else if (provider === 'gemini') {
     const geminiKeys = global.modSettings?.translation?.geminiKeys || [];
-    state.totalValidKeys = geminiKeys.filter(k => k).length;
+    const validKeys = geminiKeys.filter(k => k);
+    state.totalValidKeys = validKeys.length;
     state.currentGeminiKeyIndex = getCurrentGeminiKeyIndex();
     state.availableModels = config.models || [];
+    
+    // 添加简化的冷却状态信息
+    state.keyStates = [];
+    const models = config.models || [];
+    for (let i = 0; i < validKeys.length; i++) {
+      const modelStates = models.map(model => ({
+        model,
+        inCooldown: keyStateTracker.isInCooldown(i, model),
+        cooldownRemaining: keyStateTracker.getCooldownRemaining(i, model),
+        consecutiveFailures: keyStateTracker.getStateSummary(i, model).consecutiveFailures
+      }));
+      state.keyStates.push({
+        keyIndex: i,
+        models: modelStates
+      });
+    }
     
     // 添加OpenAI兼容模式信息
     state.openAIMode = global.modSettings?.translation?.geminiOpenAIMode;

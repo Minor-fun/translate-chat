@@ -21,13 +21,16 @@ const COLORS = {
 };
 
 // 翻译提供商选项
-const TRANSLATION_PROVIDERS = ['google', 'gemini', 'openai', 'hunyuan'];
+const TRANSLATION_PROVIDERS = ['google', 'gemini', 'openai', 'hunyuan', 'custom'];
 
 // 日志级别选项
 const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'none'];
 
 // 常用选项
-const COMMON_LANGS = ['en', 'zh', 'ko', 'ja', 'ru', 'es', 'pt', 'fr', 'de', 'it', 'nl', 'pl', 'sv', 'cs', 'ro', 'uk', 'bg', 'el', 'da', 'no', 'fi'];
+const COMMON_LANGS = ['en', 'zh','zh-TW', 'ko', 'ja', 'ru', 'es', 'pt', 'fr', 'de', 'it'];
+
+// 翻译界面支持的语言
+const GUI_LANGS = ['en', 'zh', 'zh-TW', 'de', 'es', 'fr', 'ru'];
 
 class Gui {
     /**
@@ -121,6 +124,38 @@ class Gui {
                     this._createInfoText(t('sendMode') + ': '),
                     this._createToggle(t(cfg.sendMode ? 'enabled' : 'disabled'), cfg.sendMode, `${this.cmd} config sendMode ${!cfg.sendMode};${this.cmd} gui`)
                 );
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createDivider());
+                tmpData.push(...this._createBreak());
+
+                // ========== 语言设置区域 ==========
+                tmpData.push(this._createSectionHeader(t('languageSettings')));
+                
+                // 源语言设置
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`📥 ${t('sourceLanguage')}`, COLORS.gray));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                const sourceLangs = ['auto', ...COMMON_LANGS];
+                tmpData.push(...this._createLangButtons(sourceLangs, cfg.sourceLang, `${this.cmd} config sourceLang`));
+                
+                // 目标语言设置
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`📤 ${t('targetLanguage')}`, COLORS.gray));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.targetLang, `${this.cmd} config targetLang`));
+                
+                // 发送语言设置
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`💬 ${t('sendLanguage')}`, COLORS.gray));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.sendLang, `${this.cmd} config sendLang`));
+                
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createDivider());
                 tmpData.push(...this._createBreak());
@@ -340,7 +375,7 @@ class Gui {
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(1));
                 tmpData.push(this._createInfoText(`• ${t('openaiModel')}: `, COLORS.gray));
-                tmpData.push(this._createInfoText(openaiModel || t('notSet'), openaiModel ? COLORS.cyan : COLORS.red));
+                tmpData.push(this._createInfoText(openaiModel || t('keyNotSet'), openaiModel ? COLORS.cyan : COLORS.red));
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(2));
                 tmpData.push(this._createInfoText(`(${this.cmd} config openaiModel ${t('modelPlaceholder')})`, COLORS.gray));
@@ -350,7 +385,7 @@ class Gui {
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(1));
                 tmpData.push(this._createInfoText(`• ${t('hunyuanModel')}: `, COLORS.gray));
-                tmpData.push(this._createInfoText(hunyuanModel || t('notSet'), hunyuanModel ? COLORS.cyan : COLORS.red));
+                tmpData.push(this._createInfoText(hunyuanModel || t('keyNotSet'), hunyuanModel ? COLORS.cyan : COLORS.red));
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(2));
                 tmpData.push(this._createInfoText(`(${this.cmd} config hunyuanModel ${t('modelPlaceholder')})`, COLORS.gray));
@@ -371,6 +406,16 @@ class Gui {
                     tmpData.push(this._createIndent(2));
                     tmpData.push(this._createInfoText(`└─ ${geminiModels.join(', ')}`, COLORS.green));
                 }
+                
+                // 自定义API模型
+                const customModel = translationConfig.models?.custom || "";
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`• ${t('customModel')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(customModel || t('keyNotSet'), customModel ? COLORS.cyan : COLORS.red));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(this._createInfoText(`(${this.cmd} config customModel ${t('modelPlaceholder')})`, COLORS.gray));
                 
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createDivider());
@@ -408,6 +453,28 @@ class Gui {
                 tmpData.push(this._createIndent(2));
                 tmpData.push(this._createInfoText(`(${this.cmd} config hunyuanKey ${t('keyPlaceholder')})`, COLORS.gray));
                 
+                // 自定义API配置
+                tmpData.push(...this._createBreak());
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(1));
+                tmpData.push(this._createInfoText(`🔧 ${t('customApiSettings')}`, COLORS.purple));
+                
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(this._createInfoText(`• ${t('customUrl')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(translationConfig.customUrl || t('keyNotSet'), translationConfig.customUrl ? COLORS.cyan : COLORS.red));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(3));
+                tmpData.push(this._createInfoText(`(${this.cmd} config customUrl ${t('customUrlPlaceholder')})`, COLORS.gray));
+                
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(2));
+                tmpData.push(this._createInfoText(`• ${t('customKey')}: `, COLORS.gray));
+                tmpData.push(this._createInfoText(translationConfig.customKey ? t('keySet') : t('keyNotSet'), translationConfig.customKey ? COLORS.green : COLORS.red));
+                tmpData.push(...this._createBreak());
+                tmpData.push(this._createIndent(3));
+                tmpData.push(this._createInfoText(`(${this.cmd} config customKey ${t('keyPlaceholder')})`, COLORS.gray));
+                
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createDivider());
                 tmpData.push(...this._createBreak());
@@ -444,14 +511,14 @@ class Gui {
                         tmpData.push(...this._createBreak());
                         tmpData.push(this._createIndent(2));
                         tmpData.push(this._createInfoText(`• Account ID: `, COLORS.gray));
-                        tmpData.push(this._createInfoText(cfAccountId || t('notSet'), cfAccountId ? COLORS.cyan : COLORS.red));
+                        tmpData.push(this._createInfoText(cfAccountId || t('keyNotSet'), cfAccountId ? COLORS.cyan : COLORS.red));
                         
                         // Cloudflare网关ID
                         const cfGatewayId = translationConfig.cloudflareGatewayId || '';
                         tmpData.push(...this._createBreak());
                         tmpData.push(this._createIndent(2));
                         tmpData.push(this._createInfoText(`• Gateway ID: `, COLORS.gray));
-                        tmpData.push(this._createInfoText(cfGatewayId || t('notSet'), cfGatewayId ? COLORS.cyan : COLORS.red));
+                        tmpData.push(this._createInfoText(cfGatewayId || t('keyNotSet'), cfGatewayId ? COLORS.cyan : COLORS.red));
                     }
                     
                     tmpData.push(...this._createBreak());
@@ -464,39 +531,7 @@ class Gui {
                 tmpData.push(this._createSectionHeader(t('interfaceLanguage')));
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(1));
-                tmpData.push(...this._createLangButtons(COMMON_LANGS, currentInterfaceLang, `${this.cmd} config interfaceLanguage`));
-                tmpData.push(...this._createBreak());
-                tmpData.push(this._createDivider());
-                tmpData.push(...this._createBreak());
-
-                // ========== 语言设置区域 ==========
-                tmpData.push(this._createSectionHeader(t('languageSettings')));
-                
-                // 源语言设置
-                tmpData.push(...this._createBreak());
-                tmpData.push(this._createIndent(1));
-                tmpData.push(this._createInfoText(`📥 ${t('sourceLanguage')}`, COLORS.gray));
-                tmpData.push(...this._createBreak());
-                tmpData.push(this._createIndent(2));
-                const sourceLangs = ['auto', ...COMMON_LANGS];
-                tmpData.push(...this._createLangButtons(sourceLangs, cfg.sourceLang, `${this.cmd} config sourceLang`));
-                
-                // 目标语言设置
-                tmpData.push(...this._createBreak());
-                tmpData.push(this._createIndent(1));
-                tmpData.push(this._createInfoText(`📤 ${t('targetLanguage')}`, COLORS.gray));
-                tmpData.push(...this._createBreak());
-                tmpData.push(this._createIndent(2));
-                tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.targetLang, `${this.cmd} config targetLang`));
-                
-                // 发送语言设置
-                tmpData.push(...this._createBreak());
-                tmpData.push(this._createIndent(1));
-                tmpData.push(this._createInfoText(`💬 ${t('sendLanguage')}`, COLORS.gray));
-                tmpData.push(...this._createBreak());
-                tmpData.push(this._createIndent(2));
-                tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.sendLang, `${this.cmd} config sendLang`));
-                
+                tmpData.push(...this._createLangButtons(GUI_LANGS, currentInterfaceLang, `${this.cmd} config interfaceLanguage`));
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createDivider());
                 tmpData.push(...this._createBreak());

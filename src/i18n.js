@@ -44,8 +44,8 @@ const baseMessages = {
   'geminiKeysAvailable': '{0} available, current #{1}',
   'openaiKey': 'OpenAI Key',
   'hunyuanKey': 'Tencent Hunyuan Key',
-  'keySet': 'Set',
-  'keyNotSet': 'Not Set',
+  'keySet': 'Configured',
+  'keyNotSet': 'Not Configured',
   'setKey': 'Set {0} key',
   'basicInfo': 'Basic Info',
   'cacheStatus': '{0}/{1} entries ({2}%)',
@@ -248,8 +248,15 @@ const baseMessages = {
   'geminiOpenAISettings': 'Gemini OpenAI Compatibility Settings',
   'geminiOpenAIMode': 'Gemini OpenAI Compatibility Mode',
   'cloudflareAccountId': 'Cloudflare Account ID',
-  'notSet': 'Not Set',
-  'cloudflareGatewayId': 'Cloudflare Gateway ID'
+  'cloudflareGatewayId': 'Cloudflare Gateway ID',
+  'customModel': 'Custom API Model',
+  'customUrl': 'Custom API URL',
+  'customKey': 'Custom API Key',
+  'customApiSettings': 'Custom API Settings',
+  'customUrlPlaceholder': 'https://example.com/v1',
+  'customUrlSet': 'Custom API URL set',
+  'customModelSet': 'Custom API model set to: {0}',
+  'customKeySet': 'Custom API key set'
 };
 
 // 已加载的语言缓存
