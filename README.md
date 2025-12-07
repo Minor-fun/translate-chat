@@ -8,25 +8,25 @@ This is a real-time chat translation plugin designed for TERA, aiming to help pl
 
 ---
 
-## ✨ Features
+## Features
 
-*   ### 🌐 Translation Engine Support
-    *   **Basic Translation**: Supports **Google Translate** and can be used without additional configuration.
-    *   **AI Translation Interfaces**: Integrates multiple AI translation interfaces, including Google's **Gemini**, OpenAI's **ChatGPT**, and Tencent's **Hunyuan**, providing more accurate translation results.
-    *   **Language Code** support list: `am, ar, az, be, bg, bn, ca, cs, da, de, el, en, es, et, eu, fa, fi, fr, gu, he, hi, hr, hu, hy, is, it, ja, ka, kn, ko, ku, lo, lt, lv, ml, mr, ms, nl, no, or, pa, pl, pt, ro, ru, sk, sl, sq, sr, sv, ta, te, th, tl, tr, uk, ur, vi, yo, zh` (utilizes [Nito-ELD Language Detector](https://github.com/nitotm/efficient-language-detector-js)).
+*   ### Translation Engine Support
+    *   **Basic Translation**: Supports **Google Translate**, usable out of the box with no extra configuration.
+    *   **AI Translation Interfaces**: Integrates multiple AI translation interfaces, including Google's **Gemini**, OpenAI's **ChatGPT**, and Tencent's **Hunyuan**, providing highly accurate translation results.
+    *   **Language Code** support list: `am, ar, az, be, bg, bn, ca, cs, da, de, el, en, es, et, eu, fa, fi, fr, gu, he, hi, hr, hu, hy, is, it, ja, ka, kn, ko, ku, lo, lt, lv, ml, mr, ms, nl, no, or, pa, pl, pt, ro, ru, sk, sl, sq, sr, sv, ta, te, th, tl, tr, uk, ur, vi, yo, zh, zh-TW` (utilizes [Nito-ELD Language Detector](https://github.com/nitotm/efficient-language-detector-js)).
 
-*   ### 💾 Local Cached Translations
+*   ### Local Cached Translations
     *   **Cost Savings**: Saves translated content locally, avoiding repetitive requests to AI interfaces and saving API costs.
     *   **Fast Translation**: The local caching mechanism improves translation response speed, making chat communication smoother.
     *   **LRU Eviction Policy**: Employs the LRU (Least Recently Used) algorithm to manage the cache. When the cache reaches its preset capacity, it automatically clears the least recently accessed entries, ensuring the cache always contains the latest and most frequently used translations, thereby increasing hit rates.
     *   **Efficient Storage**: Supports **result deduplication** (identifies identical translation results to reduce file size) and **long text hashing** (generates unique keys for long messages, optimizing storage).
 
-*   ### 📚 Game Terminology Library
+*   ### Game Terminology Library
     *   Allows users to add and manage custom game terms (such as class names, dungeon abbreviations, etc.), ensuring these specific vocabularies maintain accuracy during translation and improving in-game translation quality.
 
-*   ### 📊 Graphical User Interface (GUI)
+*   ### Graphical User Interface (GUI)
     *   Provides a real-time GUI displaying current translation engine status, cache hit rate, memory optimization, terminology library size, and other information.
-    *   **Multi-language Support**: The interface supports `'en', 'zh', 'ko', 'ja', 'ru', 'es', 'pt', 'fr', 'de', 'it', 'nl', 'pl', 'sv', 'cs', 'ro', 'uk', 'bg', 'el', 'da', 'no', 'fi'` and other languages.
+    *   **Multi-language Support**: The interface supports `'en', 'zh', 'zh-TW', 'de', 'es', 'fr', 'ru'` and other languages.
     *   **Custom Interface Language**: If existing interface languages do not meet your needs, you can use the command `/translate interface [your language code]` to set it (this feature relies on AI translation interfaces; after setting, please check the Toolbox backend logs to confirm translation completion).
 
 ---
@@ -55,23 +55,14 @@ The plugin uses Google Translate by default and can be used without any configur
 
 ---
 
-## Detailed Settings Introduction
-
-#### The accuracy of AI translation interfaces directly depends on the quality of the selected AI model. Stronger model capabilities lead to higher translation accuracy.
+## Detailed Configuration Guide
 
 ### 1. Translation Interface Settings
 
 #### Google Translate (Default)
 
-*   **Features**: **Free**, **no configuration required** to use.
-*   **Limitations**: Translation quality is not as accurate as AI models, and may be affected by network fluctuations, with general stability.
-
 #### Gemini API (Google AI)
 
-*   **Features**:
-    *   **Free to use**, with rate limits on [the free tier details](https://ai.google.dev/gemini-api/docs/rate-limits)
-    *   Supports **model fallback strategy**: Automatically attempts other available models when a model is restricted, improving availability.
-    *   Supports **multiple key cycling**: Configuring multiple keys can help avoid API rate limits.
 *   **Setup Steps**:
     1.  **Get Key**: Visit [Google AI Studio](https://aistudio.google.com/apikey) to obtain your Gemini API key.
     2.  **Select Provider**: In the GUI, select `gemini` as the translation provider.
@@ -84,29 +75,12 @@ The plugin uses Google Translate by default and can be used without any configur
             ```
             translate config geminiKeys KEY1_EXAMPLE,KEY2_EXAMPLE,KEY3_EXAMPLE # Please replace with your actual keys
             ```
-    4.  **Configure Model**: Use the command to configure the specific Gemini model you wish to use (e.g., `gemini-2.5-flash`, `gemini-2.5-flash-lite`，`gemini-2.0-flash`) [All Model list](https://ai.google.dev/gemini-api/docs/models):
+    4.  **Configure Model**: Use the command to configure the specific Gemini model you wish to use (e.g., `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.0-flash`):
         ```
         translate config geminiModels gemini-2.5-flash,gemini-2.5-flash-lite,gemini-2.0-flash
         ```
 
-
-    *   **Tip**: Gemini does not support access in some countries/regions (e.g., China, Hong Kong, Russia, etc.) [details](https://ai.google.dev/gemini-api/docs/available-regions).
-    *   **Method to bypass Gemini regional restrictions**:
-        *   1. Use a game accelerator to accelerate Toolbox, ensuring the accelerator node is in the Gemini supported regions list.
-        *   2. Use the [cfll-gemini](https://github.com/DragonEmpery/cfll-gemini) project. Disable Translate Chat plugin updates, modify the `translate-chat\src\translate.js` file, and replace `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` with the address obtained from the cfll-gemini project.
-
----
-
-*   **Cloudflare AI Gateway Mode (Optional)**:
-    If you have a Cloudflare account, you can leverage its AI Gateway service to further improve API stability and easily analyze API usage.
-    1.  **Create AI Gateway**: Log in to your Cloudflare homepage, click **AI** → **AI Gateway** in the left navigation bar → **Create Gateway** in the top right, name it: "mygemini" (or any name you prefer).
-    2.  **Get API Endpoint**: Click on your created gateway, then click the **API** button in the top right to view the API endpoint (e.g., `https://gateway.ai.cloudflare.com/v1/YOUR_CLOUDFLARE_ACCOUNT_ID_EXAMPLE/mygemini/`).
-    3.  **Plugin Configuration**: In the GUI, select `cloudflare` in "Gemini OpenAI Compatible Mode".
-    4.  **Set ID**: Use commands to configure your Cloudflare Account ID and AI Gateway Gateway ID:
-        ```
-        translate config cloudflareAccountId YOUR_CLOUDFLARE_ACCOUNT_ID_HERE # Please replace with your actual account ID
-        translate config cloudflareGatewayId mygemini # Please replace with your actual gateway ID
-        ```
+    *   **Tip**: Gemini does not support access in some countries/regions (e.g., China, Hong Kong, Russia, etc.). Details: [Available Regions](https://ai.google.dev/gemini-api/docs/available-regions).
 
 ---
 
@@ -137,11 +111,40 @@ The plugin uses Google Translate by default and can be used without any configur
         ```
         translate config hunyuanModel hunyuan-turbos-latest
         ```
+
+#### Custom AI Translation Interface (OpenAI Interface Format)
+
+The module supports custom AI translation interfaces.
+
+**Interface URL**: `customUrl` must end with **/v1**. Please **do not** include `/chat/completions`.
+
+**Configuration Example:**
+
+1. Enable Custom Mode
+```
+translate config translationProvider custom
+```
+
+2. Set API Address: e.g., https://api.example.com/v1
+```
+translate config customUrl https://api.deepseek.com/v1
+```
+
+3. Set API Key
+```
+translate config customKey sk-xxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+4. Set Model Name (e.g., deepseek-chat, moonshot-v1-8k, etc.)
+```
+translate config customModel deepseek-chat
+```
+
 ---
 
 ### 2. Custom Game Terminology Library Settings
 
-By defining translations for in-game specific abbreviations, class names, and other terms, you can significantly improve translation accuracy and avoid potential misunderstandings by AI translation models. (Not extensively tested, if bugs occur, please disable this feature).
+By defining translations for in-game specific abbreviations, class names, and other terms, you can significantly improve translation accuracy and avoid potential misunderstandings by AI translation models. (Not extensively tested; if bugs occur, please disable this feature).
 
 *   **Add/Update Terminology**:
     Suppose you want the in-game dungeon abbreviation "AAH" to always be accurately translated as "AAH", not something else.
@@ -158,105 +161,9 @@ By defining translations for in-game specific abbreviations, class names, and ot
     translate term search AAH
     ```
 
----
+## **Interface Preview**
 
-### 3. GUI Interface Settings
-
-The GUI interface provides an intuitive way to manage various functions and parameters of the plugin.
-
-#### **I. General Module Settings**
-
-*   **Module Enabled Status (`enabled`)**
-    *   **Optional values:** Enabled (`[Green]`) / Disabled (`[Red]`)
-    *   **Description:** Controls whether the entire translation module is on or off.
-*   **Send Mode (`sendMode`)**
-    *   **Optional values:** Enabled (`[Green]`) / Disabled (`[Red]`)
-    *   **Description:** When enabled, your sent chat messages will be automatically translated according to the `sendLang` setting.
-
-#### **II. Translation Provider Settings**
-
-*   **Translation Provider (`translationProvider`)**
-    *   **Optional values:** `google`, `gemini`, `openai`, `hunyuan`
-    *   **Description:** Select the backend service used for translation. The currently selected provider will be highlighted in green.
-
-#### **III. Gemini / Cloudflare Compatible Mode Settings**
-
-*   **Compatible Mode (`geminiOpenAIMode`)**
-    *   **Optional values:** `cloudflare`, `official`
-    *   **Description:** Through Cloudflare AI Gateway proxy, or direct connection to the official API. The currently selected mode will be highlighted in green.
-
-#### **IV. Local Cached Translation Settings**
-
-*   **Enable Cache (`useCache`)**
-    *   **Optional values:** Enabled (`[Green]`) / Disabled (`[Red]`)
-    *   **Description:** Controls whether the local caching function for translation results is enabled.
-*   **Maximum Cache Entries (`cacheMaxSize`)**
-    *   **Optional values:** `10000`, `20000`, `40000`, `50000`, `100000`
-    *   **Description:** Sets the maximum number of translation entries that can be stored in the cache. A larger value allows more data to be cached but also consumes more memory.
-*   **Auto Save Interval (`cacheInterval`)**
-    *   **Optional values:** `1`, `5`, `10`, `30`, `60` (minutes)
-    *   **Description:** Sets the frequency at which the cache automatically saves to a local file.
-*   **Log Level (`cacheLogLevel`)**
-    *   **Optional values:** `debug`, `info`, `warn`, `error`, `none`
-    *   **Description:** Controls the verbosity of cache system logs. `none` means no cache logs are displayed.
-*   **Long Text Hashing (`cacheHashEnabled`)**
-    *   **Optional values:** Enabled (`[Green]`) / Disabled (`[Red]`)
-    *   **Description:** When enabled, long texts (exceeding the `cacheThreshold` character limit) are hashed to store their keys more compactly, improving cache efficiency.
-*   **Result Deduplication (`cacheDedupe` / `deduplicateResults`)**
-    *   **Optional values:** Enabled (`[Green]`) / Disabled (`[Red]`)
-    *   **Description:** When enabled, the cache identifies and stores unique translation results, reducing duplicate data and cache file size.
-*   **Long Text Threshold (`cacheThreshold` / `longTextThreshold`)**
-    *   **Optional values:** `10`, `20`, `30`, `50`, `100` (characters)
-    *   **Description:** Defines how many characters a text must reach to be considered "long text" and potentially hashed (when `cacheHashEnabled` is enabled).
-*   **Write Threshold (`cacheWriteThreshold`)**
-    *   **Optional values:** `50`, `100`, `200`, `500` (times)
-    *   **Description:** Controls how many cache write operations must occur before an automatic save is forced, balancing performance and data persistence.
-*   **Cleanup Percentage (`cacheCleanupPercentage`)**
-    *   **Optional values:** `0.1`, `0.2`, `0.3`, `0.5` (percentage, e.g., `0.2` represents 20%)
-    *   **Description:** When the number of cache entries reaches `cacheMaxSize`, this specifies what percentage of old entries will be deleted during each cleanup operation to make room for new data.
-
-#### Simulated Test Comparison for Different Cache Entry Counts
-> Actual chat content will result in different performance behaviors, this data is for reference only.
-> Based on real Chinese-to-English chat data, simulating resource usage with different cache entry counts.
-
-| Performance Metric      | 10,000 Entries | 20,000 Entries | 40,000 Entries | 50,000 Entries | 100,000 Entries | Unit      |
-| :---------------------- | :------------- | :------------- | :------------- | :------------- | :-------------- | :-------- |
-| **Cache File**          | 1.15           | 2.32           | 4.67           | 5.84           | 11.70           | MB        |
-| **Cache Load Speed**    | 960,227        | 853,271        | 946,528        | 1,036,480      | 1,041,439       | Entries/sec |
-| **Random Read Speed**   | 2,844,950      | 2,457,606      | 2,619,172      | 2,384,359      | 2,231,645       | Entries/sec |
-| **Sequential Read Speed** | 3,397,893      | 3,157,562      | 2,672,368      | 2,653,928      | 2,308,403       | Entries/sec |
-| **File Read Speed**     | 1,769,598      | 1,746,771      | 1,543,383      | 1,828,541      | 1,614,969       | Entries/sec |
-| **File Write Speed**    | 2,981,426      | 3,047,108      | 2,812,841      | 2,438,251      | 3,156,147       | Entries/sec |
-| **LRU Update Speed**    | 3,801,800      | 4,550,971      | 4,299,226      | 4,055,698      | 4,426,084       | Ops/sec   |
-| **Memory Usage**        | 2352           | 2616           | 2321           | 2546           | 3105            | Bytes/entry |
-| **Total Memory Usage**  | 22             | 50             | 89             | 121            | 296             | MB        |
-
-#### **V. Terminology Library Settings**
-
-*   **Enable Terminology (`useTerminology`)**
-    *   **Optional values:** Enabled (`[Green]`) / Disabled (`[Red]`)
-    *   **Description:** Controls whether the custom game terminology library feature is enabled.
-
-#### **VI. Language Settings**
-
-*   **Interface Language (`interfaceLanguage`)**
-    *   **Optional values:** `en`, `zh`, `ko`, `ja`, `ru`, `es`, `pt`, `fr`, `de`, `it`, `nl`, `pl`, `sv`, `cs`, `ro`, `uk`, `bg`, `el`, `da`, `no`, `fi` (list of common languages)
-    *   **Description:** Sets the display language for the module's GUI.
-*   **Source Language (`sourceLang`)**
-    *   **Optional values:** `auto`
-    *   **Description:** Sets the original language of chat messages.
-*   **Target Language (`targetLang`)**
-    *   **Optional values:** All languages from the list of common languages.
-    *   **Description:** Sets the language into which received chat messages will be translated.
-*   **Send Language (`sendLang`)**
-    *   **Optional values:** All languages from the list of common languages.
-    *   **Description:** In send mode, this is the language into which your typed messages will be translated.
-
-#### **VII. Interface Preview**
-
-![](https://i.imgur.com/74P6WoM.jpeg)
-
-![](https://i.imgur.com/yo2Jmnp.jpeg)
+![](https://i.imgur.com/PfRVSHN.jpeg)
 
 ## Command List
 
