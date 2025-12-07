@@ -10,254 +10,17 @@ const path = require('path');
 const DEFAULT_LANGUAGE = 'en';
 
 // 基础语言文件（英文）
-const baseMessages = {
-  'moduleEnabled': 'Module enabled',
-  'moduleDisabled': 'Module disabled',
-  'enabled': 'Enabled',
-  'disabled': 'Disabled',
-  'yes': 'Yes',
-  'no': 'No',
-  'save': 'Save',
-  'cancel': 'Cancel',
-  'apply': 'Apply',
-  'reset': 'Reset',
-  'guiTitle': 'Translation Settings',
-  'basicSettings': 'Basic Settings',
-  'languageSettings': 'Language Settings',
-  'engineStatus': 'Translation Engine Status',
-  'providerSettings': 'Translation Provider',
-  'apiKeySettings': 'API Key Settings',
-  'cacheSettings': 'Cache Settings',
-  'terminologySettings': 'Terminology',
-  'interfaceLanguage': 'Interface Language',
-  'sourceLanguage': 'Source Language',
-  'targetLanguage': 'Target Language',
-  'sendLanguage': 'Send Language',
-  'sendMode': 'Send Mode',
-  'currentEngine': 'Current Engine',
-  'provider': 'Provider',
-  'availableModels': 'Available Models',
-  'currentKey': 'Current Key',
-  'errorStatus': 'Error Status',
-  'geminiKeys': 'Gemini Keys',
-  'geminiKeysCount': '{0} keys configured',
-  'geminiKeysAvailable': '{0} available, current #{1}',
-  'openaiKey': 'OpenAI Key',
-  'hunyuanKey': 'Tencent Hunyuan Key',
-  'keySet': 'Configured',
-  'keyNotSet': 'Not Configured',
-  'setKey': 'Set {0} key',
-  'basicInfo': 'Basic Info',
-  'cacheStatus': '{0}/{1} entries ({2}%)',
-  'hitStats': '{0} (hit {1}/miss {2}/total {3})',
-  'cacheState': '{0}{1}',
-  'cacheStateEnabled': 'Enabled',
-  'cacheStateDisabled': 'Disabled',
-  'cacheModified': ' (unsaved changes)',
-  'autoSave': 'Auto-save: {0} | Added {1} | Saved {2} times',
-  'autoSaveMinutes': '{0} minutes',
-  'autoSaveDisabled': 'disabled',
-  'saveNow': 'Save Now',
-  'cacheSaved': 'Translation cache manually saved',
-  'saveFailed': 'Save failed: {0}',
-  'deduplication': 'Deduplication',
-  'dedupeEffects': 'Deduplication Effects',
-  'memoryOptimization': 'Memory: {0} unique/{1} references (saved {2})',
-  'performanceOptimization': 'Performance: Skipped {0} duplicate translations (saved {1} requests)',
-  'duplicateData': 'Duplicates: Found {0} groups, {1} duplicate entries',
-  'textReuse': 'Text reuse: {0} shared text blocks (reduced memory usage)',
-  'maxCacheEntries': 'Max Cache Entries',
-  'autoSaveInterval': 'Auto-save Interval (minutes)',
-  'longTextHash': 'Long Text Hashing',
-  'longTextThreshold': 'Long Text Threshold',
-  'logLevel': 'Log Level',
-  'writeThreshold': 'Write Threshold',
-  'cleanupPercentage': 'Cleanup Percentage',
-  'dedupeResults': 'Deduplicate Results',
-  'termStats': 'Terminology Stats',
-  'totalTerms': 'Total terms: {0}',
-  'languageCoverage': 'Language Coverage',
-  'confidenceDistribution': 'Confidence Distribution',
-  'high': 'High: {0}',
-  'medium': 'Medium: {0}',
-  'low': 'Low: {0}',
-  'addTerm': 'Add term: {0} add <original> <translated>',
-  'searchTerm': 'Search terms: {0} search <keyword>',
-  'providerChanged': 'Translation provider set to: {0}',
-  'sourceLanguageChanged': 'Source language set to: {0}',
-  'targetLanguageChanged': 'Target language set to: {0}',
-  'sendLanguageChanged': 'Now translating outgoing messages to: {0}',
-  'sendModeStatus': 'Send mode: {0}',
-  'sendModeEnabled': 'enabled. Language: {0}',
-  'sendModeDisabled': 'disabled',
-  'logLevelSet': 'Log level set to: {0}',
-  'geminiKeysSet': 'Set {0} Gemini keys',
-  'cacheEnabled': 'Translation cache {0}',
-  'maxCacheSet': 'Max cache entries set to: {0}',
-  'autoSaveSet': 'Auto-save interval set to: {0} minutes',
-  'longTextHashEnabled': 'Long text hashing {0}',
-  'longTextThresholdSet': 'Long text threshold set to: {0} characters',
-  'writeThresholdSet': 'Write threshold set to: {0} changes',
-  'cleanupPercentageSet': 'Cleanup percentage set to: {0}',
-  'dedupeEnabled': 'Result deduplication {0}',
-  'terminologyEnabled': 'Terminology {0}',
-  'interfaceLanguageChanged': 'Interface language set to: {0}. Restart may be required for full effect.',
-  'openGuiDesc': 'Open GUI interface',
-  'showCommandsDesc': 'Show all available commands',
-  'saveCacheDesc': 'Save cache immediately',
-  'searchCacheDesc': 'Search cache',
-  'removeCacheDesc': 'Delete cache by condition',
-  'addTermDesc': 'Add terminology',
-  'searchTermDesc': 'Search terminology',
-  'setInterfaceLanguageDesc': 'Set interface language',
-  'alternativeInterfaceLanguageDesc': 'Alternative way to set interface language',
-  'listInterfaceLanguagesDesc': 'Show available interface languages',
-  'setGeminiKeysDesc': 'Set Gemini keys',
-  'setOpenAIKeyDesc': 'Set OpenAI key',
-  'setHunyuanKeyDesc': 'Set Tencent Hunyuan key',
-  'openGuiSettingsDesc': 'Open graphical settings interface',
-  'configsInGuiNote': 'Most settings can be configured directly in the GUI interface, which is recommended.',
-  'keywordPlaceholder': 'keyword',
-  'valuePlaceholder': 'value',
-  'originalPlaceholder': 'original',
-  'translatedPlaceholder': 'translated',
-  'correctedPlaceholder': 'corrected',
-  'languageCodePlaceholder': 'language code',
-  'geminiKeysPlaceholder': 'key1,key2,...',
-  'keyPlaceholder': 'key',
-  'modelNamePlaceholder': 'model name',
-  'modelNamesPlaceholder': 'model1,model2,...',
-  'numberPlaceholder': 'number',
-  'logLevelPlaceholder': 'debug|info|warn|error|none',
-  'welcomeMessage': 'Send mode enabled. Translating sent messages to {0}',
-  'helpMessage': 'Use "/8 translate list" to see all available commands.',
-  'commandList': '===== Translation Module Command List =====',
-  'commandListItem': '{0} - {1}',
-  'commandCategory': '=== {0} ===',
-  'currentInterfaceLanguage': 'Current interface language: {0}',
-  'availableInterfaceLanguages': 'Available interface languages: {0}',
-  'termAddedUpdated': 'Term added or updated: {0} → {1}',
-  'provideKeyword': 'Please provide a search keyword',
-  'noTermsFound': 'No terms found containing "{0}"',
-  'termsFound': 'Found {0} terms containing "{1}":',
-  'noCacheFound': 'No cache entries found containing "{0}"',
-  'cacheFound': 'Found {0} cache entries containing "{1}":',
-  'invalidLanguage': 'Error: {0} is not a valid language. Please check the documentation for available languages.',
-  'targetLanguageAuto': 'Error: Target language cannot be set to auto.',
-  'validLanguage': 'Please specify a valid language code',
-  'valueError': 'Error: {0} is not a valid value',
-  'invalidKey': 'Error: Unknown configuration item {0}',
-  'validKeyword': 'Please provide a valid keyword',
-  'positiveNumber': 'Error: Number must be positive',
-  'nonNegativeNumber': 'Error: Number must be non-negative',
-  'percentageRange': 'Error: Percentage must be between 0 and 1',
-  'maxIntervalWarning': 'Warning: Requested interval {0} minutes too large, limited to maximum {1} minutes (24 hours)',
-  'specifyCondition': 'Please specify a deletion condition, e.g.: translate cache remove lang ko or translate cache remove keyword hello',
-  'cacheDeleted': 'Deleted cache for {0} language',
-  'targetLangCacheDeleted': 'Deleted cache with {0} as target language',
-  'keywordCacheDeleted': 'Deleted cache containing keyword "{0}"',
-  'translatingMessages': 'Translating interface messages to {0}...',
-  'translationComplete': 'Interface translation complete',
-  'translationFailed': 'Failed to translate some messages',
-  'languageFileLoaded': 'Language file loaded: {0}',
-  'invalidUrlError': 'Invalid URL or protocol error',
-  'dnsResolutionError': 'DNS resolution failed',
-  'connectionRefusedError': 'Connection refused',
-  'hostUnreachableError': 'Host unreachable',
-  'networkTimeoutError': 'Network timeout',
-  'networkConnectionError': 'Network connection failed',
-  'unknownError': 'Unknown error',
-  'badRequestError': 'Bad request parameters',
-  'unauthorizedError': 'Invalid API key or unauthorized',
-  'forbiddenError': 'Insufficient access permissions',
-  'notFoundError': 'Resource not found',
-  'requestTimeoutError': 'Request timeout',
-  'contentTooLargeError': 'Request content too large',
-  'rateLimitError': 'Rate limit exceeded',
-  'serverError': 'Server internal error',
-  'gatewayError': 'Gateway error',
-  'serviceUnavailableError': 'Service unavailable',
-  'gatewayTimeoutError': 'Gateway timeout',
-  'httpError': 'HTTP error ({0})',
-  'hunyuanParamError': 'Tencent Hunyuan parameter format error',
-  'hunyuanAuthError': 'Tencent Hunyuan authentication failed',
-  'hunyuanServiceUnavailableError': 'Tencent Hunyuan service temporarily unavailable',
-  'hunyuanRateLimitError': 'Tencent Hunyuan request frequency exceeded',
-  'hunyuanNoResponseError': 'Tencent Hunyuan API no response',
-  'hunyuanParamFormatError': 'Tencent Hunyuan parameter error',
-  'hunyuanPermissionError': 'Tencent Hunyuan insufficient permissions',
-  'hunyuanInternalError': 'Tencent Hunyuan service internal error',
-  'openaiModelNotFoundError': 'OpenAI model not found',
-  'openaiQuotaExceededError': 'OpenAI quota exceeded',
-  'openaiContextLengthError': 'OpenAI context length exceeded',
-  'openaiContentPolicyError': 'OpenAI content policy violation',
-  'openaiInvalidKeyError': 'OpenAI invalid API key',
-  'openaiRateLimitError': 'OpenAI request rate limit',
-  'openaiServerError': 'OpenAI server error',
-  'openaiOverloadedError': 'OpenAI service overloaded',
-  'geminiParamError': 'Gemini parameter error',
-  'geminiAuthError': 'Gemini authentication failed',
-  'geminiPermissionError': 'Gemini permission error',
-  'geminiQuotaError': 'Gemini resource quota limit',
-  'geminiInternalError': 'Gemini internal service error',
-  'geminiUnavailableError': 'Gemini service temporarily unavailable',
-  'geminiNoResponseError': 'Gemini API no response',
-  'geminiSafetyFilterError': 'Gemini content safety filter',
-  'geminiResourceLimitError': 'Gemini resource limit',
-  'aiGatewayEmptyContentError': 'AI Gateway: Empty message content',
-  'aiGatewayRoutingError': 'AI Gateway routing error',
-  'aiGatewayProviderError': 'AI Gateway provider error',
-  'aiGatewayQuotaError': 'Cloudflare AI Gateway quota limit',
-  'aiGatewayRouteConfigError': 'AI Gateway route configuration error',
-  'aiGatewayRequestFormatError': 'AI Gateway request format error',
-  'aiGatewayAuthError': 'AI Gateway authentication failed',
-  'aiGatewayPermissionError': 'AI Gateway insufficient permissions',
-  'aiGatewayRateLimitError': 'AI Gateway request rate limit',
-  'aiGatewayQuotaExceededError': 'AI Gateway quota exceeded',
-  'aiGatewayInternalError': 'AI Gateway internal error',
-  'aiGatewayBackendError': 'AI Gateway backend service error',
-  'aiGatewayTimeoutError': 'AI Gateway request timeout',
-  'invalidApiKeyError': 'Invalid API key',
-  'requestRateLimitError': 'Request rate limit',
-  'jsonParseError': 'JSON parsing error',
-  'invalidResponseError': 'Invalid response',
-  'contextLengthExceededError': 'Context length exceeded',
-  'contentPolicyViolationError': 'Content policy violation',
-  'logPrefix': '[{0}]',
-  'errorPrefix': '[{0}] Error: ',
-  'warningPrefix': '[{0}] Warning: ',
-  'infoPrefix': '[{0}] Info: ',
-  'invalidGeminiOpenAIMode': 'Invalid Gemini OpenAI compatibility mode: {0}',
-  'geminiOpenAIModeChanged': 'Gemini OpenAI compatibility mode changed to: {0}',
-  'cloudflareAccountIdSet': 'Cloudflare account ID set',
-  'cloudflareGatewayIdSet': 'Cloudflare gateway ID set',
-  'modelSet': '{0} model set to: {1}',
-  'geminiModelsSet': 'Set {0} Gemini models',
-  'setGeminiOpenAIModeDesc': 'Set Gemini OpenAI compatibility mode',
-  'accountIdPlaceholder': 'account ID',
-  'setCloudflareAccountIdDesc': 'Set Cloudflare AI Gateway account ID',
-  'gatewayIdPlaceholder': 'gateway ID',
-  'setCloudflareGatewayIdDesc': 'Set Cloudflare AI Gateway gateway ID',
-  'modelSettings': 'Model Settings',
-  'openaiModel': 'OpenAI Model',
-  'modelPlaceholder': 'model name',
-  'hunyuanModel': 'Tencent Hunyuan Model',
-  'geminiModels': 'Gemini Models',
-  'models': 'models',
-  'geminiModelsPlaceholder': 'model1,model2,...',
-  'geminiOpenAISettings': 'Gemini OpenAI Compatibility Settings',
-  'geminiOpenAIMode': 'Gemini OpenAI Compatibility Mode',
-  'cloudflareAccountId': 'Cloudflare Account ID',
-  'cloudflareGatewayId': 'Cloudflare Gateway ID',
-  'customModel': 'Custom API Model',
-  'customUrl': 'Custom API URL',
-  'customKey': 'Custom API Key',
-  'customApiSettings': 'Custom API Settings',
-  'customUrlPlaceholder': 'https://example.com/v1',
-  'customUrlSet': 'Custom API URL set',
-  'customModelSet': 'Custom API model set to: {0}',
-  'customKeySet': 'Custom API key set'
-};
+let baseMessages = {};
+try {
+  const enPath = path.join(__dirname, 'lang', 'en.json');
+  if (fs.existsSync(enPath)) {
+    baseMessages = JSON.parse(fs.readFileSync(enPath, 'utf8'));
+  } else {
+    console.error('Error: en.json not found in lang directory');
+  }
+} catch (e) {
+  console.error('Error loading base messages:', e);
+}
 
 // 已加载的语言缓存
 const loadedLanguages = {
@@ -393,82 +156,99 @@ class I18nManager {
     
     const messages = { ...baseMessages };
     const translatedMessages = {};
+    const separator = "@@||TRANSLATE_SEPARATOR_TOKEN_DO_NOT_TRANSLATE||@@";
+    // 每次翻译的最大字符数，放宽到5000以支持更多条目
+    const MAX_BATCH_SIZE = 5000; 
+    // 每次翻译的最大条目数
+    const MAX_BATCH_COUNT = 50;
     
-    // 最大重试次数
-    const maxRetries = 3;
-    let retryCount = 0;
+    // 准备批次
+    const keys = Object.keys(messages);
+    const batches = [];
+    let currentBatchKeys = [];
+    let currentBatchText = "";
     
-    const translateBatch = async () => {
-      // 将所有消息合并成一个文本，用特殊标记分隔
-      const keys = Object.keys(messages);
-      const allTexts = keys.map(key => messages[key]);
+    for (const key of keys) {
+      const text = messages[key];
+      // 估算添加当前文本后的长度
+      const nextLength = currentBatchText.length + (currentBatchText ? separator.length : 0) + text.length;
       
-      // 添加唯一分隔符，确保不会在文本中出现且不会被翻译
-      const separator = "@@||TRANSLATE_SEPARATOR_TOKEN_DO_NOT_TRANSLATE||@@";
-      const combinedText = allTexts.join(separator);
-      
-      // 一次性翻译所有文本
-      const translatedCombined = await this.translator.translateText(combinedText, lang, 'en', true);
-      
-      // 分割回单独的消息
-      const translatedArray = translatedCombined.split(separator);
-      
-      // 检查翻译结果数量是否匹配
-      if (translatedArray.length === keys.length) {
-        keys.forEach((key, index) => {
-          translatedMessages[key] = translatedArray[index];
-        });
-        
-        return true;
+      if ((nextLength > MAX_BATCH_SIZE || currentBatchKeys.length >= MAX_BATCH_COUNT) && currentBatchKeys.length > 0) {
+        batches.push({ keys: currentBatchKeys, text: currentBatchText });
+        currentBatchKeys = [];
+        currentBatchText = "";
       }
       
-      // 如果分割后数量不匹配，表示翻译异常
-      this.mod.error(`批量翻译结果异常: 预期 ${keys.length} 条消息，实际收到 ${translatedArray.length} 条`);
-      return false;
-    };
+      if (currentBatchText) {
+        currentBatchText += separator;
+      }
+      currentBatchText += text;
+      currentBatchKeys.push(key);
+    }
     
-    try {
-      let success = false;
+    if (currentBatchKeys.length > 0) {
+      batches.push({ keys: currentBatchKeys, text: currentBatchText });
+    }
+    
+    this.mod.log(`Translation split into ${batches.length} batches.`);
+
+    // 逐批翻译
+    let success = true;
+    
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      let batchSuccess = false;
+      let retryCount = 0;
+      const maxRetries = 3;
       
-      while (!success && retryCount < maxRetries) {
+      while (!batchSuccess && retryCount < maxRetries) {
         try {
-          success = await translateBatch();
+          // 翻译当前批次
+          const translatedCombined = await this.translator.translateText(batch.text, lang, 'en', true);
           
-          if (!success) {
-            retryCount++;
-            if (retryCount < maxRetries) {
-              this.mod.log(`批量翻译失败，${10}秒后进行第${retryCount + 1}次重试...`);
-              // 等待10秒后重试
-              await new Promise(resolve => setTimeout(resolve, 10000));
-            }
+          // 分割结果
+          const translatedArray = translatedCombined.split(separator);
+          
+          // 验证数量
+          if (translatedArray.length === batch.keys.length) {
+            batch.keys.forEach((key, index) => {
+              translatedMessages[key] = translatedArray[index].trim();
+            });
+            batchSuccess = true;
+          } else {
+            throw new Error(`Batch ${i+1} count mismatch: expected ${batch.keys.length}, got ${translatedArray.length}`);
           }
         } catch (err) {
           retryCount++;
-          this.mod.error(`翻译尝试 #${retryCount} 失败:`, err);
-          
+          this.mod.error(`Batch ${i+1}/${batches.length} failed (attempt ${retryCount}):`, err);
           if (retryCount < maxRetries) {
-            this.mod.log(`${10}秒后进行第${retryCount + 1}次重试...`);
-            // 等待10秒后重试
-            await new Promise(resolve => setTimeout(resolve, 10000));
+            this.mod.log(`Retrying batch ${i+1} in 5 seconds...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
           }
         }
       }
       
-      if (success) {
-        // 保存结果
-        loadedLanguages[lang] = translatedMessages;
-        this.saveLanguageFile(lang, translatedMessages);
-        
-        this.mod.log(this.t('translationComplete'));
-        this.currentLanguage = lang;
-        return true;
-      } else {
-        this.mod.error(`批量翻译失败，已重试${retryCount}次`);
-        this.mod.log(this.t('translationFailed'));
-        return false;
+      if (!batchSuccess) {
+        success = false;
+        this.mod.error(`Failed to translate batch ${i+1} after ${maxRetries} attempts.`);
+        break;
       }
-    } catch (error) {
-      this.mod.error('翻译消息失败:', error);
+      
+      // 批次之间稍微等待一下，避免速率限制
+      if (i < batches.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    if (success) {
+      // 保存结果
+      loadedLanguages[lang] = translatedMessages;
+      this.saveLanguageFile(lang, translatedMessages);
+      
+      this.mod.log(this.t('translationComplete'));
+      this.currentLanguage = lang;
+      return true;
+    } else {
       this.mod.log(this.t('translationFailed'));
       return false;
     }
