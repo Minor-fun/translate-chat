@@ -134,7 +134,7 @@ class Gui {
                 // 源语言设置
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(1));
-                tmpData.push(this._createInfoText(`📥 ${t('sourceLanguage')}`, COLORS.gray));
+                tmpData.push(this._createInfoText(`${t('sourceLanguage')}`, COLORS.gray));
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(2));
                 const sourceLangs = ['auto', ...COMMON_LANGS];
@@ -143,7 +143,7 @@ class Gui {
                 // 目标语言设置
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(1));
-                tmpData.push(this._createInfoText(`📤 ${t('targetLanguage')}`, COLORS.gray));
+                tmpData.push(this._createInfoText(`${t('targetLanguage')}`, COLORS.gray));
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(2));
                 tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.targetLang, `${this.cmd} config targetLang`));
@@ -151,7 +151,7 @@ class Gui {
                 // 发送语言设置
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(1));
-                tmpData.push(this._createInfoText(`💬 ${t('sendLanguage')}`, COLORS.gray));
+                tmpData.push(this._createInfoText(`${t('sendLanguage')}`, COLORS.gray));
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(2));
                 tmpData.push(...this._createLangButtons(COMMON_LANGS, cfg.sendLang, `${this.cmd} config sendLang`));
@@ -198,7 +198,7 @@ class Gui {
                 
                 if (state.errorType) {
                     tmpData.push(...this._createBreak(), this._createIndent(1));
-                    tmpData.push(this._createInfoText(`⚠ ${t('errorStatus')}: `, COLORS.orange));
+                    tmpData.push(this._createInfoText(`${t('errorStatus')}: `, COLORS.orange));
                     tmpData.push(this._createInfoText(state.errorType, COLORS.red));
                 }
                 
@@ -248,7 +248,7 @@ class Gui {
                     tmpData.push(...this._createBreak());
                     tmpData.push(...this._createBreak());
                     tmpData.push(this._createIndent(1));
-                    tmpData.push(this._createInfoText(`📊 ${t('basicInfo')}`, COLORS.purple));
+                    tmpData.push(this._createInfoText(`${t('basicInfo')}`, COLORS.purple));
                     
                     tmpData.push(...this._createBreak());
                     tmpData.push(this._createIndent(2));
@@ -268,13 +268,13 @@ class Gui {
                     tmpData.push(this._createIndent(2));
                     tmpData.push(this._createInfoText(`• ${t('autoSave', autoSaveInterval ? t('autoSaveMinutes', autoSaveInterval) : t('autoSaveDisabled'), cacheStats.added, cacheStats.saves)}`));
                     tmpData.push({ "text": "&nbsp;&nbsp;" });
-                    tmpData.push({ "text": `<font color="${COLORS.blue}" size="+20">[💾 ${t('saveNow')}]</font>`, "command": `${this.cmd} cache save;${this.cmd} gui` });
+                    tmpData.push({ "text": `<font color="${COLORS.blue}" size="+20">[${t('saveNow')}]</font>`, "command": `${this.cmd} cache save;${this.cmd} gui` });
                     
                     // 去重功能相关
                     tmpData.push(...this._createBreak());
                     tmpData.push(...this._createBreak());
                     tmpData.push(this._createIndent(1));
-                    tmpData.push(this._createInfoText(`🔄 ${t('deduplication')}`, COLORS.purple));
+                    tmpData.push(this._createInfoText(`${t('deduplication')}`, COLORS.purple));
                     
                     tmpData.push(...this._createBreak());
                     tmpData.push(this._createIndent(2));
@@ -310,7 +310,7 @@ class Gui {
                     tmpData.push(...this._createBreak());
                     tmpData.push(...this._createBreak());
                     tmpData.push(this._createIndent(1));
-                    tmpData.push(this._createInfoText(`⚙️ ${t('cacheSettings')}`, COLORS.purple));
+                    tmpData.push(this._createInfoText(`${t('cacheSettings')}`, COLORS.purple));
                     
                     // 缓存大小设置
                     tmpData.push(...this._createBreak());
@@ -457,7 +457,7 @@ class Gui {
                 tmpData.push(...this._createBreak());
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(1));
-                tmpData.push(this._createInfoText(`🔧 ${t('customApiSettings')}`, COLORS.purple));
+                tmpData.push(this._createInfoText(`${t('customApiSettings')}`, COLORS.purple));
                 
                 tmpData.push(...this._createBreak());
                 tmpData.push(this._createIndent(2));
@@ -551,7 +551,7 @@ class Gui {
                     tmpData.push(...this._createBreak());
                     tmpData.push(...this._createBreak());
                     tmpData.push(this._createIndent(1));
-                    tmpData.push(this._createInfoText(`📚 ${t('termStats')}`, COLORS.purple));
+                    tmpData.push(this._createInfoText(`${t('termStats')}`, COLORS.purple));
                     
                     tmpData.push(...this._createBreak());
                     tmpData.push(this._createIndent(2));
@@ -562,7 +562,7 @@ class Gui {
                         tmpData.push(...this._createBreak());
                         tmpData.push(...this._createBreak());
                         tmpData.push(this._createIndent(1));
-                        tmpData.push(this._createInfoText(`🌐 ${t('languageCoverage')}`, COLORS.purple));
+                        tmpData.push(this._createInfoText(`${t('languageCoverage')}`, COLORS.purple));
                         
                         for (const [lang, count] of Object.entries(termStats.languageCoverage)) {
                             tmpData.push(...this._createBreak());
@@ -577,7 +577,7 @@ class Gui {
                         tmpData.push(...this._createBreak());
                         tmpData.push(...this._createBreak());
                         tmpData.push(this._createIndent(1));
-                        tmpData.push(this._createInfoText(`📊 ${t('confidenceDistribution')}`, COLORS.purple));
+                        tmpData.push(this._createInfoText(`${t('confidenceDistribution')}`, COLORS.purple));
                         
                         tmpData.push(...this._createBreak());
                         tmpData.push(this._createIndent(2));
@@ -596,10 +596,10 @@ class Gui {
                     tmpData.push(...this._createBreak());
                     tmpData.push(...this._createBreak());
                     tmpData.push(this._createIndent(1));
-                    tmpData.push(this._createInfoText(`💡 ${t('addTerm')}: ${this.cmd} term add [${t('originalPlaceholder')}] [${t('translatedPlaceholder')}]`, COLORS.gray));
+                    tmpData.push(this._createInfoText(`${t('addTerm')}: ${this.cmd} term add [${t('originalPlaceholder')}] [${t('translatedPlaceholder')}]`, COLORS.gray));
                     tmpData.push(...this._createBreak());
                     tmpData.push(this._createIndent(1));
-                    tmpData.push(this._createInfoText(`💡 ${t('searchTerm')}: ${this.cmd} term search [${t('keywordPlaceholder')}]`, COLORS.gray));
+                    tmpData.push(this._createInfoText(`${t('searchTerm')}: ${this.cmd} term search [${t('keywordPlaceholder')}]`, COLORS.gray));
                 }
 
                 break;

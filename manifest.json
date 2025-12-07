@@ -14,7 +14,7 @@
         "src/cache-manager.js": "3dcfc6240e40c7828d9b5f82cd684242e141a05b09400b75040f68cf9a572859",
         "src/command.js": "231fad60672e0a631ce86ed59c542ddb660fe87d61bea4b5043221d67b5dc478",
         "src/error-handler.js": "e78888197ea01e50d9594311d35e00c038f64fa02be36e1fdb0185421144a12b",
-        "src/gui.js": "2a67d1d89388e70de2ec6bcb82968f3c197aea7ce720ebe79ae3bfc0dd162fa0",
+        "src/gui.js": "a43e7d4928a89620187df51fa3c28e2fd5fccca64f21a66bc54e6ff80bc3c9a8",
         "src/i18n.js": "e9b1597e71cce4965483de3b02691102b4748eacb7899c3bce1cb4c3de2a49e5",
         "src/index.js": "54b5d7782cb7c9945b26731df0b7f821e4f96a1b1fc1d91411b6301b770a76e9",
         "src/lang/de.json": "10fbe30b7da5609764db960bb181cb0de063672ab1b75bfefc563cf38b696bdf",
