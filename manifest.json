@@ -9,7 +9,7 @@
         "lib/language-detector/lib/LanguageDetect.js": "0fe3c87e651055e4c76f140080beb7d5a9d0c75418fa3951fe7e4b3c88a9012c",
         "lib/language-detector/lib/eld.js": "58cd8d4a777a8cd1744b5ce89b96d2b34e088ea5fca93b03d09039475a4c3e36",
         "lib/language-detector/package.json": "025d2442278dfd6f96c728bfa7824952764320af69b63c7e2ae1d7e7d07d38d6",
-        "module.json": "8626140c3f49b7683fc2a126f31a17cfa6a71c27215ee25be55e72b0631d18e1",
+        "module.json": "76a761c0775c1165821e54e37603178d114697c7adbe4de2dd1004d110535050",
         "package.json": "4bf2a223acfb7c6dc6c01c37a0b773f704a82060f9d79b812590c4fa69efcf7b",
         "src/cache-manager.js": "3dcfc6240e40c7828d9b5f82cd684242e141a05b09400b75040f68cf9a572859",
         "src/command.js": "231fad60672e0a631ce86ed59c542ddb660fe87d61bea4b5043221d67b5dc478",
@@ -27,7 +27,7 @@
         "src/normalize.js": "54eb83ca3e15898f72091ba6bac1c8067972a2c03145ff72647de362175d9efa",
         "src/setting_migration.js": "3033280e67e5c8a631007a553ca17055d846a2a0f21132308fbd61e9aabc1e87",
         "src/terminology-manager.js": "7e81636462ba62703920b65559122d4ee3c75dfeb61fe730d01756dbb3fb8f7b",
-        "src/translate.js": "f570e163ec266c14d62732f3abd42b8f3b22ba40941ae0912dd81d76ddc03ab1"
+        "src/translate.js": "d22473b6a9b56279aff38571516ef20890d732ba7d91e40f50569d1b3e76dfef"
     },
     "defs": {
         "C_ADMIN": "raw",
