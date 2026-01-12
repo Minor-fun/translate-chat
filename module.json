@@ -2,11 +2,11 @@
     "disableAutoUpdate": false,
     "name": "translate-chat",
     "author": "hyacinth/hsdn/Pravv/HakuryuuDom/teralove",
-    "version": "12/08/2025",
+    "version": "01/12/2026",
     "description": "Translates incoming and outgoing messages to another language using Google Translate, Gemini, OpenAI, Hunyuan, etc.",
     "options": {
         "niceName": "translate-chat",
-        "settingsVersion": 3,
+        "settingsVersion": 4,
         "settingsFile": "config.json",
         "settingsMigrator": "src/setting_migration.js"
     },

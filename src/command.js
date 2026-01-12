@@ -1,36 +1,28 @@
-const { AVAILABLE_LANGUAGES } = require('./translate');
+/**
+ * command.js
+ * Command handling module - Process user commands
+ */
+
+'use strict';
+
 const Gui = require('./gui');
+const { AVAILABLE_LANGUAGES } = require('./core/translation-service');
 
 /**
- * 日志级别选项
- */
-const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'none'];
-
-/**
- * 翻译提供商选项
- */
-const TRANSLATION_PROVIDERS = ['google', 'gemini', 'openai', 'hunyuan', 'custom'];
-
-/**
- * Gemini OpenAI兼容模式选项
- */
-const GEMINI_OPENAI_MODES = ['cloudflare', 'official'];
-
-/**
- * 配置项模式定义
+ * Configuration item schema definition
  */
 const SETTINGS_SCHEMA = {
-  // 基础配置
+  // Basic configuration
   'enabled': {
     type: 'boolean',
     default: false,
-    description: '模块启用状态',
+    description: 'Module enabled status',
     applyEffect: (value, mod, utils) => mod.command.message(utils.t(value ? 'moduleEnabled' : 'moduleDisabled'))
   },
   'sourceLang': {
     type: 'string',
     default: 'auto',
-    description: '源语言',
+    description: 'Source language',
     validate: (value) => AVAILABLE_LANGUAGES.includes(value) || value === 'auto',
     validateMessage: (value, utils) => utils.t('invalidLanguage', value),
     applyEffect: (value, mod, utils) => mod.command.message(utils.t('sourceLanguageChanged', value))
@@ -38,7 +30,7 @@ const SETTINGS_SCHEMA = {
   'targetLang': {
     type: 'string',
     default: 'en',
-    description: '目标语言',
+    description: 'Target language',
     validate: (value) => AVAILABLE_LANGUAGES.includes(value) && value !== 'auto',
     validateMessage: (value, utils) => {
       if (!AVAILABLE_LANGUAGES.includes(value)) return utils.t('invalidLanguage', value);
@@ -50,13 +42,13 @@ const SETTINGS_SCHEMA = {
   'sendMode': {
     type: 'boolean',
     default: false,
-    description: '发送模式',
+    description: 'Send mode',
     applyEffect: (value, mod, utils) => mod.command.message(utils.t('sendModeStatus', value ? utils.t('sendModeEnabled', mod.settings.sendLang) : utils.t('sendModeDisabled')))
   },
   'sendLang': {
     type: 'string',
     default: 'en',
-    description: '发送语言',
+    description: 'Send language',
     validate: (value) => AVAILABLE_LANGUAGES.includes(value),
     validateMessage: (value, utils) => utils.t('invalidLanguage', value),
     applyEffect: (value, mod, utils) => {
@@ -64,12 +56,12 @@ const SETTINGS_SCHEMA = {
       mod.command.message(utils.t('sendLanguageChanged', value));
     }
   },
-  
-  // 界面语言设置
+
+  // Interface language settings
   'interfaceLanguage': {
     type: 'string',
     default: 'en',
-    description: '界面语言',
+    description: 'Interface language',
     validate: (value) => AVAILABLE_LANGUAGES.includes(value),
     validateMessage: (value, utils) => utils.t('invalidLanguage', value),
     applyEffect: async (value, mod, utils) => {
@@ -79,279 +71,76 @@ const SETTINGS_SCHEMA = {
       }
     }
   },
-  
-  // 缓存配置
+
+  // Cache configuration
   'useCache': {
     type: 'boolean',
     default: false,
-    description: '启用缓存',
+    description: 'Enable cache',
     path: 'cache.enabled',
     applyEffect: (value, mod, utils) => {
-      // 更新mod.settings中的值以保持UI状态同步
       mod.settings.useCache = value;
-      utils.setCacheEnabled(value);
+      utils.translator.setCacheEnabled(value);
       mod.command.message(utils.t('cacheEnabled', value ? utils.t('enabled') : utils.t('disabled')));
     }
   },
-  // 缓存路径使用默认值 '../data/translation-cache.json'
   'cacheMaxSize': {
     type: 'number',
     default: 20000,
-    description: '最大缓存条目数',
+    description: 'Maximum cache entries',
     path: 'cache.maxSize',
     validate: (value) => value > 0,
     validateMessage: (value, utils) => utils.t('positiveNumber'),
     applyEffect: (value, mod, utils) => {
-      utils.updateCacheConfig({ maxSize: value }).then(config => 
+      utils.translator.updateCacheConfig({ maxSize: value }).then(config =>
         mod.command.message(utils.t('maxCacheSet', config.maxSize)));
     }
   },
   'cacheInterval': {
     type: 'number',
     default: 10,
-    description: '自动保存间隔(分钟)',
+    description: 'Auto-save interval (minutes)',
     path: 'cache.autoSaveInterval',
     validate: (value) => value >= 0,
     validateMessage: (value, utils) => utils.t('nonNegativeNumber'),
     applyEffect: (value, mod, utils) => {
-      // 限制最大间隔为24小时（1440分钟）
-      const MAX_INTERVAL_MINUTES = 1440; // 24小时 = 1440分钟
+      const MAX_INTERVAL_MINUTES = 1440;
       const effectiveInterval = Math.min(value, MAX_INTERVAL_MINUTES);
-      
-      // 如果请求的间隔超过最大值，显示警告
       if (value > MAX_INTERVAL_MINUTES) {
         mod.command.message(utils.t('maxIntervalWarning', value, MAX_INTERVAL_MINUTES));
       }
-      
-      // 直接传递分钟值，而不是毫秒值
-      utils.updateCacheConfig({ autoSaveInterval: effectiveInterval }).then(config => 
+      utils.translator.updateCacheConfig({ autoSaveInterval: effectiveInterval }).then(config =>
         mod.command.message(utils.t('autoSaveSet', effectiveInterval)));
-    }
-  },
-  'cacheHashEnabled': {
-    type: 'boolean',
-    default: false,
-    description: '长文本哈希',
-    path: 'cache.hashLongText',
-    applyEffect: (value, mod, utils) => {
-      utils.updateCacheConfig({ hashLongText: value });
-      mod.command.message(utils.t('longTextHashEnabled', value ? utils.t('enabled') : utils.t('disabled')));
-    }
-  },
-  'cacheThreshold': {
-    type: 'number',
-    default: 30,
-    description: '长文本阈值',
-    path: 'cache.longTextThreshold',
-    validate: (value) => value > 0,
-    validateMessage: (value, utils) => utils.t('positiveNumber'),
-    applyEffect: (value, mod, utils) => {
-      utils.updateCacheConfig({ longTextThreshold: value });
-      mod.command.message(utils.t('longTextThresholdSet', value));
-    }
-  },
-  'cacheLogLevel': {
-    type: 'string',
-    default: 'info',
-    description: '日志级别',
-    path: 'cache.logLevel',
-    validate: (value) => LOG_LEVELS.includes(value),
-    validateMessage: (value, utils) => utils.t('invalidLanguage', value),
-    applyEffect: (value, mod, utils) => {
-      utils.updateCacheConfig({ logLevel: value });
-      mod.command.message(utils.t('logLevelSet', value));
     }
   },
   'cacheWriteThreshold': {
     type: 'number',
     default: 100,
-    description: '写入阈值',
+    description: 'Write threshold',
     path: 'cache.writeThreshold',
     validate: (value) => value > 0,
     validateMessage: (value, utils) => utils.t('positiveNumber'),
     applyEffect: (value, mod, utils) => {
-      utils.updateCacheConfig({ writeThreshold: value });
+      utils.translator.updateCacheConfig({ writeThreshold: value });
       mod.command.message(utils.t('writeThresholdSet', value));
     }
   },
   'cacheCleanupPercentage': {
     type: 'number',
     default: 0.2,
-    description: '清理百分比',
+    description: 'Cleanup percentage',
     path: 'cache.cleanupPercentage',
     validate: (value) => value > 0 && value <= 1,
     validateMessage: (value, utils) => utils.t('percentageRange'),
     applyEffect: (value, mod, utils) => {
-      utils.updateCacheConfig({ cleanupPercentage: value });
+      utils.translator.updateCacheConfig({ cleanupPercentage: value });
       mod.command.message(utils.t('cleanupPercentageSet', value));
-    }
-  },
-  'cacheDedupe': {
-    type: 'boolean',
-    default: false,
-    description: '结果去重',
-    path: 'cache.deduplicateResults',
-    applyEffect: (value, mod, utils) => {
-      utils.updateCacheConfig({ deduplicateResults: value });
-      mod.command.message(utils.t('dedupeEnabled', value ? utils.t('enabled') : utils.t('disabled')));
-    }
-  },
-  
-  // 术语库配置
-  'useTerminology': {
-    type: 'boolean',
-    default: false,
-    description: '启用术语库',
-    applyEffect: (value, mod, utils) => {
-      if (utils.setTerminologyEnabled) {
-        utils.setTerminologyEnabled(value);
-      }
-      mod.command.message(utils.t('terminologyEnabled', value ? utils.t('enabled') : utils.t('disabled')));
-    }
-  },
-  
-  // 翻译提供商配置
-  'translationProvider': {
-    type: 'string',
-    default: 'google',
-    description: '翻译提供商',
-    path: 'translation.provider',
-    validate: (value) => TRANSLATION_PROVIDERS.includes(value),
-    validateMessage: (value, utils) => utils.t('invalidLanguage', value),
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('providerChanged', value));
-    }
-  },
-  'geminiOpenAIMode': {
-    type: 'string',
-    default: 'official',
-    description: 'Gemini OpenAI兼容模式',
-    path: 'translation.geminiOpenAIMode',
-    validate: (value) => GEMINI_OPENAI_MODES.includes(value),
-    validateMessage: (value, utils) => utils.t('invalidGeminiOpenAIMode', value),
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('geminiOpenAIModeChanged', value));
-    }
-  },
-  'cloudflareAccountId': {
-    type: 'string',
-    default: '',
-    description: 'Cloudflare AI Gateway账户ID',
-    path: 'translation.cloudflareAccountId',
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('cloudflareAccountIdSet'));
-    }
-  },
-  'cloudflareGatewayId': {
-    type: 'string',
-    default: '',
-    description: 'Cloudflare AI Gateway网关ID',
-    path: 'translation.cloudflareGatewayId',
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('cloudflareGatewayIdSet'));
-    }
-  },
-  // 模型配置
-  'openaiModel': {
-    type: 'string',
-    default: '',
-    description: 'OpenAI模型',
-    path: 'translation.models.openai',
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('modelSet', 'OpenAI', value));
-    }
-  },
-  'hunyuanModel': {
-    type: 'string',
-    default: '',
-    description: '腾讯混元模型',
-    path: 'translation.models.hunyuan',
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('modelSet', utils.t('hunyuanKey'), value));
-    }
-  },
-  'geminiModels': {
-    type: 'array',
-    default: [],
-    description: 'Gemini模型列表',
-    path: 'translation.models.gemini',
-    processInput: (value) => value.split(',').map(m => m.trim()),
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('geminiModelsSet', value.length));
-    }
-  },
-  'geminiKeys': {
-    type: 'array',
-    default: [],
-    description: 'Gemini密钥',
-    path: 'translation.geminiKeys',
-    processInput: (value) => value.split(',').map(k => k.trim()),
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('geminiKeysSet', value.filter(k => k).length));
-    }
-  },
-  'openaiKey': {
-    type: 'string',
-    default: '',
-    description: 'OpenAI密钥',
-    path: 'translation.openaiKey',
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('keySet', 'OpenAI'));
-    }
-  },
-  'hunyuanKey': {
-    type: 'string',
-    default: '',
-    description: '腾讯混元密钥',
-    path: 'translation.hunyuanKey',
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('keySet', utils.t('hunyuanKey')));
-    }
-  },
-  'customUrl': {
-    type: 'string',
-    default: '',
-    description: '自定义API URL',
-    path: 'translation.customUrl',
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('customUrlSet'));
-    }
-  },
-  'customKey': {
-    type: 'string',
-    default: '',
-    description: '自定义API密钥',
-    path: 'translation.customKey',
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('keySet', 'Custom'));
-    }
-  },
-  'customModel': {
-    type: 'string',
-    default: '',
-    description: '自定义API模型',
-    path: 'translation.models.custom',
-    applyEffect: (value, mod, utils) => {
-      utils.setModuleSettings(mod.settings);
-      mod.command.message(utils.t('modelSet', 'Custom', value));
     }
   }
 };
 
 /**
- * 配置处理器类
+ * Config handler class
  */
 class ConfigHandler {
   constructor(mod, utils) {
@@ -360,11 +149,6 @@ class ConfigHandler {
     this.schema = SETTINGS_SCHEMA;
   }
 
-  /**
-   * 处理配置命令
-   * @param {string} key 配置项键名
-   * @param {any} value 配置项值
-   */
   handleConfigCommand(key, value) {
     const schema = this.schema[key];
     if (!schema) {
@@ -373,39 +157,30 @@ class ConfigHandler {
     }
 
     if (value === undefined) {
-      // 显示当前值
       const currentValue = this.getConfigValue(key);
       this.mod.command.message(`${schema.description}: ${currentValue}`);
       return;
     }
 
-    // 处理值
     let processedValue = this.processValue(value, schema);
-    
-    // 验证值
+
     if (schema.validate && !schema.validate(processedValue)) {
       this.mod.command.message(schema.validateMessage ? schema.validateMessage(value, this.utils) : this.utils.t('valueError', value));
       return;
     }
 
-    // 设置值
     this.setConfigValue(key, processedValue);
-    
-    // 应用效果
+
     if (schema.applyEffect) {
       schema.applyEffect(processedValue, this.mod, this.utils);
     }
-    
-    // 保存设置
+
     this.mod.saveSettings();
   }
 
-  /**
-   * 处理输入值
-   */
   processValue(value, schema) {
     if (schema.processInput) return schema.processInput(value);
-    
+
     switch (schema.type) {
       case 'boolean':
         if (value === 'true' || value === 'on' || value === '1') return true;
@@ -423,52 +198,37 @@ class ConfigHandler {
     }
   }
 
-  /**
-   * 获取配置值
-   */
   getConfigValue(key) {
     const schema = this.schema[key];
     if (!schema) return undefined;
-    
-    return schema.path 
+
+    return schema.path
       ? this.getValueByPath(this.mod.settings, schema.path)
       : (this.mod.settings[key] !== undefined ? this.mod.settings[key] : schema.default);
   }
 
-  /**
-   * 设置配置值
-   */
   setConfigValue(key, value) {
     const schema = this.schema[key];
     if (!schema) return;
-    
-    schema.path 
+
+    schema.path
       ? this.setValueByPath(this.mod.settings, schema.path, value)
       : this.mod.settings[key] = value;
   }
 
-  /**
-   * 按路径获取值
-   */
   getValueByPath(obj, path) {
     const parts = path.split('.');
     let current = obj;
-    
     for (const part of parts) {
       if (current === undefined || current === null) return undefined;
       current = current[part];
     }
-    
     return current;
   }
 
-  /**
-   * 按路径设置值
-   */
   setValueByPath(obj, path, value) {
     const parts = path.split('.');
     let current = obj;
-    
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
       if (current[part] === undefined || current[part] === null) {
@@ -476,31 +236,27 @@ class ConfigHandler {
       }
       current = current[part];
     }
-    
     current[parts[parts.length - 1]] = value;
   }
 }
 
 /**
- * 命令处理模块
+ * Command handler module
  */
 class CommandHandler {
   constructor(mod, translator) {
     this.mod = mod;
     this.translator = translator;
     this.i18n = translator.getI18n();
-    
+    this.t = (key, ...args) => this.i18n.t(key, ...args);
+
     const utils = {
-      setCacheEnabled: (enabled) => this.translator.setCacheEnabled(enabled),
-      updateCacheConfig: (config) => this.translator.updateCacheConfig(config),
-      setModuleSettings: () => this.translator.updateSettings(),
-      setTerminologyEnabled: (enabled) => this.translator.setTerminologyEnabled(enabled),
-      t: (key, ...args) => this.i18n.t(key, ...args),
-      translator: this.translator
+      translator: this.translator,
+      t: this.t
     };
     this.configHandler = new ConfigHandler(mod, utils);
-    
-    // 初始化GUI
+
+    // Initialize GUI
     this.gui = new Gui(mod, this.translator);
     this.gui.init();
   }
@@ -509,277 +265,307 @@ class CommandHandler {
     this.mod.command.add('translate', {
       $default: () => this.showGui(),
       list: () => this.showCommandList(),
+
+      // Endpoint management commands
+      endpoint: {
+        $none: () => this.listEndpointsCmd(),
+        add: (...args) => this.addEndpointCmd(args),
+        models: (...args) => this.setEndpointModelsCmd(args),
+        delete: (name) => this.deleteEndpointCmd(name),
+        list: () => this.listEndpointsCmd(),
+        receive: (name, model) => this.setReceiveEndpointCmd(name, model),
+        send: (name, model) => this.setSendEndpointCmd(name, model)
+      },
+
+      // Cache commands
       cache: {
         $none: () => this.showGui(),
         search: keyword => this.searchCacheItems(keyword),
         remove: this.getCacheRemoveCommands(),
         save: () => this.saveCache()
       },
-      term: {
-        $none: () => this.showGui(),
-        add: (original, translated) => this.addTerm(original, translated),
-        correct: (original, corrected) => this.addTerm(original, corrected),
-        search: keyword => this.searchTerms(keyword)
-      },
+
+      // Interface language
       interface: {
         $default: (lang) => this.setInterfaceLanguage(lang),
         list: () => this.listInterfaceLanguages()
       },
+
+      // Configuration commands
       config: {
         $default: () => this.showGui(),
-        // 基础设置
         enabled: (value) => this.configHandler.handleConfigCommand('enabled', value),
         sendMode: (value) => this.configHandler.handleConfigCommand('sendMode', value),
-        // 语言设置
         sourceLang: (value) => this.configHandler.handleConfigCommand('sourceLang', value),
         targetLang: (value) => this.configHandler.handleConfigCommand('targetLang', value),
         sendLang: (value) => this.configHandler.handleConfigCommand('sendLang', value),
         interfaceLanguage: (value) => this.configHandler.handleConfigCommand('interfaceLanguage', value),
-        // 翻译提供商设置
-        translationProvider: (value) => this.configHandler.handleConfigCommand('translationProvider', value),
-        // 模型配置
-        openaiModel: (value) => this.configHandler.handleConfigCommand('openaiModel', value),
-        hunyuanModel: (value) => this.configHandler.handleConfigCommand('hunyuanModel', value),
-        geminiModels: (value) => this.configHandler.handleConfigCommand('geminiModels', value),
-        // Gemini OpenAI兼容模式设置
-        geminiOpenAIMode: (value) => this.configHandler.handleConfigCommand('geminiOpenAIMode', value),
-        cloudflareAccountId: (value) => this.configHandler.handleConfigCommand('cloudflareAccountId', value),
-        cloudflareGatewayId: (value) => this.configHandler.handleConfigCommand('cloudflareGatewayId', value),
-        // API密钥设置
-        geminiKeys: (value) => this.configHandler.handleConfigCommand('geminiKeys', value),
-        openaiKey: (value) => this.configHandler.handleConfigCommand('openaiKey', value),
-        hunyuanKey: (value) => this.configHandler.handleConfigCommand('hunyuanKey', value),
-        // 自定义API设置
-        customUrl: (value) => this.configHandler.handleConfigCommand('customUrl', value),
-        customKey: (value) => this.configHandler.handleConfigCommand('customKey', value),
-        customModel: (value) => this.configHandler.handleConfigCommand('customModel', value),
-        // 缓存设置
         useCache: (value) => this.configHandler.handleConfigCommand('useCache', value),
         cacheMaxSize: (value) => this.configHandler.handleConfigCommand('cacheMaxSize', value),
         cacheInterval: (value) => this.configHandler.handleConfigCommand('cacheInterval', value),
-        cacheHashEnabled: (value) => this.configHandler.handleConfigCommand('cacheHashEnabled', value),
-        cacheThreshold: (value) => this.configHandler.handleConfigCommand('cacheThreshold', value),
-        cacheLogLevel: (value) => this.configHandler.handleConfigCommand('cacheLogLevel', value),
         cacheWriteThreshold: (value) => this.configHandler.handleConfigCommand('cacheWriteThreshold', value),
-        cacheCleanupPercentage: (value) => this.configHandler.handleConfigCommand('cacheCleanupPercentage', value),
-        cacheDedupe: (value) => this.configHandler.handleConfigCommand('cacheDedupe', value),
-        // 术语库设置
-        useTerminology: (value) => this.configHandler.handleConfigCommand('useTerminology', value)
+        cacheCleanupPercentage: (value) => this.configHandler.handleConfigCommand('cacheCleanupPercentage', value)
       },
+
       gui: () => this.showGui()
     });
   }
 
+
+
+  /**
+   * Add endpoint command
+   * Usage: translate endpoint add <name> <url> <key>
+   */
+  addEndpointCmd(args) {
+    if (args.length < 3) {
+      this.mod.command.message(this.t('addEndpointUsage'));
+      this.mod.command.message('translate endpoint add <name> <url> <key>');
+      return;
+    }
+
+    const [name, url, ...keyParts] = args;
+    const key = keyParts.join(' ');
+    const result = this.translator.addEndpoint(name, url, key);
+
+    this.mod.command.message(this.t(result.message, result.success ? result.name : name));
+  }
+
+  /**
+   * Set endpoint models command
+   * Usage: translate endpoint models <name> <model1,model2,...>
+   */
+  setEndpointModelsCmd(args) {
+    if (args.length < 2) {
+      this.mod.command.message(this.t('modelsEndpointUsage'));
+      this.mod.command.message('translate endpoint models <name> <model1,model2,...>');
+      return;
+    }
+
+    const [name, ...modelArgs] = args;
+    const models = modelArgs.join(' ').split(',').map(m => m.trim());
+    const result = this.translator.setEndpointModels(name, models);
+
+    if (result.success) {
+      this.mod.command.message(this.t(result.message, result.name, result.models.join(', ')));
+    } else {
+      this.mod.command.message(this.t(result.message, name));
+    }
+  }
+
+  /**
+   * Delete endpoint command
+   */
+  deleteEndpointCmd(name) {
+    if (!name) {
+      this.mod.command.message(this.t('endpointNameRequired'));
+      return;
+    }
+
+    const result = this.translator.removeEndpoint(name);
+    this.mod.command.message(this.t(result.message, result.success ? result.name : name));
+  }
+
+  /**
+   * List all endpoints
+   */
+  listEndpointsCmd() {
+    const endpoints = this.translator.listEndpoints();
+    const receiveConfig = this.translator.getReceiveConfig();
+    const sendConfig = this.translator.getSendConfig();
+
+    this.mod.command.message(this.t('endpointList'));
+
+    // Show Google Translate (Built-in)
+    const isReceiveGoogle = receiveConfig.endpoint === 'google';
+    const isSendGoogle = sendConfig.endpoint === 'google';
+    this.mod.command.message(`  [google] ${this.t('googleTranslate')} (${this.t('builtin')})${isReceiveGoogle ? ' [R]' : ''}${isSendGoogle ? ' [S]' : ''}`);
+
+    if (endpoints.length === 0) {
+      this.mod.command.message(`  ${this.t('noEndpointsConfigured')}`);
+    } else {
+      for (const ep of endpoints) {
+        const isReceive = receiveConfig.endpoint === ep.name;
+        const isSend = sendConfig.endpoint === ep.name;
+        const markers = `${isReceive ? ' [R]' : ''}${isSend ? ' [S]' : ''}`;
+        const models = ep.models.length > 0 ? ep.models.join(', ') : this.t('noModels');
+
+        this.mod.command.message(`  [${ep.name}] ${ep.url}${markers}`);
+        this.mod.command.message(`    ${this.t('models')}: ${models}`);
+      }
+    }
+
+    this.mod.command.message('');
+    this.mod.command.message(`${this.t('receiveConfig')}: ${receiveConfig.endpoint}${receiveConfig.model ? ':' + receiveConfig.model : ''}`);
+    this.mod.command.message(`${this.t('sendConfig')}: ${sendConfig.endpoint}${sendConfig.model ? ':' + sendConfig.model : ''}`);
+  }
+
+  /**
+   * Set receive endpoint
+   */
+  setReceiveEndpointCmd(name, model = '') {
+    if (!name) {
+      this.mod.command.message(this.t('endpointNameRequired'));
+      this.mod.command.message('translate endpoint receive <name> [model]');
+      return;
+    }
+
+    const result = this.translator.setReceiveEndpoint(name, model);
+    if (result.success) {
+      if (result.model) {
+        this.mod.command.message(this.t(result.message, result.endpoint, result.model));
+      } else {
+        this.mod.command.message(this.t('receiveEndpointSetSimple', result.endpoint));
+      }
+    } else {
+      this.mod.command.message(this.t(result.message, name));
+    }
+  }
+
+  /**
+   * Set send endpoint
+   */
+  setSendEndpointCmd(name, model = '') {
+    if (!name) {
+      this.mod.command.message(this.t('endpointNameRequired'));
+      this.mod.command.message('translate endpoint send <name> [model]');
+      return;
+    }
+
+    const result = this.translator.setSendEndpoint(name, model);
+    if (result.success) {
+      if (result.model) {
+        this.mod.command.message(this.t(result.message, result.endpoint, result.model));
+      } else {
+        this.mod.command.message(this.t('sendEndpointSetSimple', result.endpoint));
+      }
+    } else {
+      this.mod.command.message(this.t(result.message, name));
+    }
+  }
+
+
+
   showCommandList() {
-    const t = (key, ...args) => this.i18n.t(key, ...args);
-    
     const messages = [
-      t('commandList'),
-      
-      // 基础命令
-      t('commandListItem', 'translate', t('openGuiDesc')),
-      t('commandListItem', 'translate gui', t('openGuiSettingsDesc')),
-      t('commandListItem', 'translate list', t('showCommandsDesc')),
-      
-      // 基础设置
-      t('commandCategory', t('basicSettings')),
-      t('commandListItem', 'translate config enabled [true|false]', t('toggleModuleDesc')),
-      t('commandListItem', 'translate config sendMode [true|false]', t('toggleSendModeDesc')),
-      
-      // 语言设置
-      t('commandCategory', t('languageSettings')),
-      t('commandListItem', 'translate config sourceLang [' + t('languageCodePlaceholder') + ']', t('setSourceLangDesc')),
-      t('commandListItem', 'translate config targetLang [' + t('languageCodePlaceholder') + ']', t('setTargetLangDesc')),
-      t('commandListItem', 'translate config sendLang [' + t('languageCodePlaceholder') + ']', t('setSendLangDesc')),
-      t('commandListItem', 'translate config interfaceLanguage [' + t('languageCodePlaceholder') + ']', t('setInterfaceLanguageDesc')),
-      t('commandListItem', 'translate interface [' + t('languageCodePlaceholder') + ']', t('setInterfaceLanguageDesc')),
-      t('commandListItem', 'translate interface list', t('listInterfaceLanguagesDesc')),
-      
-      // 缓存命令
-      t('commandCategory', t('cacheCommands')),
-      t('commandListItem', 'translate cache save', t('saveCacheDesc')),
-      t('commandListItem', 'translate cache search [' + t('keywordPlaceholder') + ']', t('searchCacheDesc')),
-      t('commandListItem', 'translate cache remove lang/to/keyword [' + t('valuePlaceholder') + ']', t('removeCacheDesc')),
-      
-      // 缓存设置
-      t('commandCategory', t('cacheSettings')),
-      t('commandListItem', 'translate config useCache [true|false]', t('toggleCacheDesc')),
-      t('commandListItem', 'translate config cacheMaxSize [' + t('numberPlaceholder') + ']', t('setCacheMaxSizeDesc')),
-      t('commandListItem', 'translate config cacheInterval [' + t('numberPlaceholder') + ']', t('setCacheIntervalDesc')),
-      t('commandListItem', 'translate config cacheHashEnabled [true|false]', t('toggleCacheHashDesc')),
-      t('commandListItem', 'translate config cacheThreshold [' + t('numberPlaceholder') + ']', t('setCacheThresholdDesc')),
-      t('commandListItem', 'translate config cacheLogLevel [' + t('logLevelPlaceholder') + ']', t('setCacheLogLevelDesc')),
-      t('commandListItem', 'translate config cacheWriteThreshold [' + t('numberPlaceholder') + ']', t('setCacheWriteThresholdDesc')),
-      t('commandListItem', 'translate config cacheCleanupPercentage [' + t('numberPlaceholder') + ']', t('setCacheCleanupPercentageDesc')),
-      t('commandListItem', 'translate config cacheDedupe [true|false]', t('toggleCacheDedupeDesc')),
-      
-      // 术语库命令和设置
-      t('commandCategory', t('terminologyCommands')),
-      t('commandListItem', 'translate term add [' + t('originalPlaceholder') + '] [' + t('translatedPlaceholder') + ']', t('addTermDesc')),
-      t('commandListItem', 'translate term correct [' + t('originalPlaceholder') + '] [' + t('correctedPlaceholder') + ']', t('correctTermDesc')),
-      t('commandListItem', 'translate term search [' + t('keywordPlaceholder') + ']', t('searchTermDesc')),
-      t('commandListItem', 'translate config useTerminology [true|false]', t('toggleTerminologyDesc')),
-      
-      // 翻译提供商设置
-      t('commandCategory', t('providerSettings')),
-      t('commandListItem', 'translate config translationProvider [google|gemini|openai|hunyuan]', t('setProviderDesc')),
-      
-      // API密钥设置
-      t('commandCategory', t('apiKeySettings')),
-      t('commandListItem', 'translate config geminiKeys [' + t('geminiKeysPlaceholder') + ']', t('setGeminiKeysDesc')),
-      t('commandListItem', 'translate config openaiKey [' + t('keyPlaceholder') + ']', t('setOpenAIKeyDesc')),
-      t('commandListItem', 'translate config hunyuanKey [' + t('keyPlaceholder') + ']', t('setHunyuanKeyDesc')),
-      
-      // 模型配置
-      t('commandCategory', t('modelSettings')),
-      t('commandListItem', 'translate config openaiModel [' + t('modelNamePlaceholder') + ']', t('setOpenAIModelDesc')),
-      t('commandListItem', 'translate config hunyuanModel [' + t('modelNamePlaceholder') + ']', t('setHunyuanModelDesc')),
-      t('commandListItem', 'translate config geminiModels [' + t('modelNamesPlaceholder') + ']', t('setGeminiModelsDesc')),
-      
-      // Gemini OpenAI兼容模式设置
-      t('commandCategory', t('geminiOpenAISettings')),
-      t('commandListItem', 'translate config geminiOpenAIMode [cloudflare|official]', t('setGeminiOpenAIModeDesc')),
-      t('commandListItem', 'translate config cloudflareAccountId [' + t('accountIdPlaceholder') + ']', t('setCloudflareAccountIdDesc')),
-      t('commandListItem', 'translate config cloudflareGatewayId [' + t('gatewayIdPlaceholder') + ']', t('setCloudflareGatewayIdDesc')),
-      
-      '\n' + t('configsInGuiNote')
+      this.t('commandList'),
+      this.t('commandListItem', 'translate', this.t('openGuiDesc')),
+      this.t('commandListItem', 'translate gui', this.t('openGuiSettingsDesc')),
+      this.t('commandListItem', 'translate list', this.t('showCommandsDesc')),
+      this.t('commandCategory', this.t('basicSettings')),
+      this.t('commandListItem', 'translate config enabled [true|false]', this.t('toggleModuleDesc')),
+      this.t('commandListItem', 'translate config sendMode [true|false]', this.t('toggleSendModeDesc')),
+      this.t('commandCategory', this.t('languageSettings')),
+      this.t('commandListItem', 'translate config sourceLang [' + this.t('languageCodePlaceholder') + ']', this.t('setSourceLangDesc')),
+      this.t('commandListItem', 'translate config targetLang [' + this.t('languageCodePlaceholder') + ']', this.t('setTargetLangDesc')),
+      this.t('commandListItem', 'translate config sendLang [' + this.t('languageCodePlaceholder') + ']', this.t('setSendLangDesc')),
+      this.t('commandListItem', 'translate config interfaceLanguage [' + this.t('languageCodePlaceholder') + ']', this.t('setInterfaceLanguageDesc')),
+      this.t('commandListItem', 'translate interface list', this.t('listInterfaceLanguagesDesc')),
+      this.t('commandCategory', this.t('endpointManager')),
+      this.t('commandListItem', 'translate endpoint list', this.t('listEndpointsDesc')),
+      this.t('commandListItem', 'translate endpoint add <name> <url> <key>', this.t('addEndpointDesc')),
+      this.t('commandListItem', 'translate endpoint models <name> <model1,model2,...>', this.t('setModelsDesc')),
+      this.t('commandListItem', 'translate endpoint delete <name>', this.t('deleteEndpointDesc')),
+      this.t('commandListItem', 'translate endpoint receive <name> [model]', this.t('setReceiveEndpointDesc')),
+      this.t('commandListItem', 'translate endpoint send <name> [model]', this.t('setSendEndpointDesc')),
+      this.t('commandCategory', this.t('cacheCommands')),
+      this.t('commandListItem', 'translate cache save', this.t('saveCacheDesc')),
+      this.t('commandListItem', 'translate cache search [' + this.t('keywordPlaceholder') + ']', this.t('searchCacheDesc')),
+      this.t('commandListItem', 'translate cache remove lang/to/keyword [' + this.t('valuePlaceholder') + ']', this.t('removeCacheDesc')),
+      this.t('commandCategory', this.t('cacheSettings')),
+      this.t('commandListItem', 'translate config useCache [true|false]', this.t('toggleCacheDesc')),
+      this.t('commandListItem', 'translate config cacheMaxSize [' + this.t('numberPlaceholder') + ']', this.t('setCacheMaxSizeDesc')),
+      this.t('commandListItem', 'translate config cacheInterval [' + this.t('numberPlaceholder') + ']', this.t('setCacheIntervalDesc')),
+      '\n' + this.t('configsInGuiNote')
     ];
-    
+
     messages.forEach(msg => this.mod.command.message(msg));
   }
 
   getCacheRemoveCommands() {
     return {
-      $default: () => this.mod.command.message(this.i18n.t('specifyCondition')),
+      $default: () => this.mod.command.message(this.t('specifyCondition')),
       lang: (lang) => this.removeCacheByCondition('lang', lang),
       to: (lang) => this.removeCacheByCondition('to', lang),
       keyword: (keyword) => this.removeCacheByCondition('keyword', keyword)
     };
   }
 
-  /**
-   * 手动保存缓存
-   */
   saveCache() {
     const result = this.translator.saveCache();
     if (result && result.then) {
-      // 如果是Promise，等待它完成
-      result.then(() => {
-        this.mod.command.message(this.i18n.t('cacheSaved'));
-      }).catch(err => {
-        this.mod.command.message(this.i18n.t('saveFailed', err.message || '未知错误'));
-      });
+      result.then(() => this.mod.command.message(this.t('cacheSaved')))
+        .catch(err => this.mod.command.message(this.t('saveFailed', err.message || 'Unknown error')));
     } else {
-      // 如果不是Promise，直接显示成功消息
-      this.mod.command.message(this.i18n.t('cacheSaved'));
+      this.mod.command.message(this.t('cacheSaved'));
     }
   }
 
   searchCacheItems(keyword) {
     if (!keyword) {
-      this.mod.command.message(this.i18n.t('provideKeyword'));
+      this.mod.command.message(this.t('provideKeyword'));
       return;
     }
-    
+
     const results = this.translator.searchCache(keyword, 5);
     if (results.length === 0) {
-      this.mod.command.message(this.i18n.t('noCacheFound', keyword));
+      this.mod.command.message(this.t('noCacheFound', keyword));
       return;
     }
-    
-    this.mod.command.message(this.i18n.t('cacheFound', results.length, keyword));
+
+    this.mod.command.message(this.t('cacheFound', results.length, keyword));
     results.forEach((item, index) => {
-      this.mod.command.message(`${index + 1}. ${item.from} → ${item.to}: "${item.text}" => "${item.result}" (${item.time})`);
+      const contextStr = item.context ? `[${item.context}] ` : '';
+      this.mod.command.message(`${index + 1}. ${contextStr}${item.from} → ${item.to}: "${item.text}" => "${item.result}" (${item.time})`);
     });
   }
 
   removeCacheByCondition(type, value) {
-    // 语言类型验证
     if ((type === 'lang' || type === 'to') && (!value || !AVAILABLE_LANGUAGES.includes(value))) {
-      this.mod.command.message(value ? this.i18n.t('invalidLanguage', value) : this.i18n.t('validLanguage'));
+      this.mod.command.message(value ? this.t('invalidLanguage', value) : this.t('validLanguage'));
       return;
     }
-    
-    // 关键词验证
+
     if (type === 'keyword' && !value) {
-      this.mod.command.message(this.i18n.t('validKeyword'));
+      this.mod.command.message(this.t('validKeyword'));
       return;
     }
-    
-    // 执行删除操作
+
     switch (type) {
       case 'lang':
         this.translator.removeCacheByLang(value);
-        this.mod.command.message(this.i18n.t('cacheDeleted', value));
+        this.mod.command.message(this.t('cacheDeleted', value));
         break;
       case 'to':
         this.translator.removeCacheByTargetLang(value);
-        this.mod.command.message(this.i18n.t('targetLangCacheDeleted', value));
+        this.mod.command.message(this.t('targetLangCacheDeleted', value));
         break;
       case 'keyword':
         this.translator.removeCacheByKeyword(value);
-        this.mod.command.message(this.i18n.t('keywordCacheDeleted', value));
+        this.mod.command.message(this.t('keywordCacheDeleted', value));
         break;
     }
   }
 
-  addTerm(original, translated) {
-    this.translator.addOrUpdateTerm(original, translated);
-    this.mod.command.message(this.i18n.t('termAddedUpdated', original, translated));
-  }
-
-  searchTerms(keyword) {
-    if (!keyword) {
-      this.mod.command.message(this.i18n.t('provideKeyword'));
-      return;
-    }
-    
-    const results = this.translator.searchTerminology(keyword);
-    if (results.length === 0) {
-      this.mod.command.message(this.i18n.t('noTermsFound', keyword));
-      return;
-    }
-    
-    this.mod.command.message(this.i18n.t('termsFound', results.length, keyword));
-    results.forEach((item, index) => {
-      this.mod.command.message(`${index + 1}. ${item.original} → ${item.translated}: "${item.definition}"`);
-    });
-  }
-  
-  /**
-   * 设置界面语言
-   * @param {string} lang 语言代码
-   */
   async setInterfaceLanguage(lang) {
     if (!lang || !AVAILABLE_LANGUAGES.includes(lang)) {
-      this.mod.command.message(lang ? this.i18n.t('invalidLanguage', lang) : this.i18n.t('validLanguage'));
+      this.mod.command.message(lang ? this.t('invalidLanguage', lang) : this.t('validLanguage'));
       return;
     }
-    
+
     const result = await this.translator.setInterfaceLanguage(lang);
-    if (result) {
-      this.mod.command.message(this.i18n.t('interfaceLanguageChanged', lang));
-    } else {
-      this.mod.command.message(this.i18n.t('invalidLanguage', lang));
-    }
-  }
-  
-  /**
-   * 列出支持的界面语言
-   */
-  listInterfaceLanguages() {
-    const currentLang = this.translator.getInterfaceLanguage();
-    const t = this.i18n.t.bind(this.i18n);
-    this.mod.command.message(t('currentInterfaceLanguage', currentLang));
-    this.mod.command.message(t('availableInterfaceLanguages', AVAILABLE_LANGUAGES.join(', ')));
+    this.mod.command.message(result ? this.t('interfaceLanguageChanged', lang) : this.t('invalidLanguage', lang));
   }
 
-  /**
-   * 显示GUI界面
-   */
+  listInterfaceLanguages() {
+    const currentLang = this.translator.getInterfaceLanguage();
+    this.mod.command.message(this.t('currentInterfaceLanguage', currentLang));
+    this.mod.command.message(this.t('availableInterfaceLanguages', AVAILABLE_LANGUAGES.join(', ')));
+  }
+
   showGui() {
     this.gui.show('index');
   }
 }
 
-module.exports = CommandHandler; 
+module.exports = CommandHandler;

@@ -1,5 +1,9 @@
 'use strict';
 
+/**
+ * Default settings
+ * Version 4: Endpoint Manager Architecture
+ */
 const DefaultSettings = {
   enabled: false,
   sourceLang: 'auto',
@@ -7,41 +11,51 @@ const DefaultSettings = {
   sendMode: false,
   sendLang: 'en',
   useCache: false,
-  useTerminology: false,
+  interfaceLanguage: 'en',
+
+
+  endpoints: {
+
+  },
+
+  // Receive direction configuration
+  receive: {
+    endpoint: 'google',
+    model: ''
+  },
+
+  // Send direction configuration
+  send: {
+    endpoint: 'google',
+    model: ''
+  },
+
+  // Cache configuration
   cache: {
     maxSize: 20000,
-    autoSaveInterval: 10, // 分钟
-    deduplicateResults: false,
+    autoSaveInterval: 10, // Minutes
     cachePath: "../data/translation-cache.json",
-    hashLongText: false,
-    hashAlgorithm: "md5",
-    longTextThreshold: 30,
-    logLevel: "info",
     writeThreshold: 100,
     cleanupPercentage: 0.2
-  },
-  translation: {
-    provider: "google", // 可选值: "openai", "hunyuan", "gemini", "google"
-    geminiKeys: [""],
-    openaiKey: "",
-    hunyuanKey: "",
-    geminiOpenAIMode: "official", // 可选值: "cloudflare", "official"
-    cloudflareAccountId: "", // Cloudflare AI Gateway 账户ID
-    cloudflareGatewayId: "",  // Cloudflare AI Gateway 网关ID
-    models: {
-      openai: "",
-      hunyuan: "",
-      gemini: ["", "", ""]
-    }
   }
 };
 
+/**
+ * Settings migration function
+ * @param {number} from_ver - Source version
+ * @param {number} to_ver - Target version
+ * @param {Object} settings - Current settings
+ * @returns {Object} Migrated settings
+ */
 module.exports = function MigrateSettings(from_ver, to_ver, settings) {
   if (from_ver === undefined) {
+    // First run, merge default settings
     return Object.assign(Object.assign({}, DefaultSettings), settings);
   } else if (from_ver === null) {
+    // Reset to default settings
     return DefaultSettings;
   } else {
+    // Recursive migration
     if (from_ver + 1 < to_ver) {
       settings = MigrateSettings(from_ver, from_ver + 1, settings);
       return MigrateSettings(from_ver + 1, to_ver, settings);
@@ -52,18 +66,14 @@ module.exports = function MigrateSettings(from_ver, to_ver, settings) {
         settings.sendMode = false;
         settings.sendLang = 'en';
         break;
+
       case 3:
         settings.useCache = false;
         settings.useTerminology = false;
         settings.cache = {
           maxSize: 20000,
           autoSaveInterval: 10,
-          deduplicateResults: false,
           cachePath: "../data/translation-cache.json",
-          hashLongText: false,
-          hashAlgorithm: "md5",
-          longTextThreshold: 30,
-          logLevel: "info",
           writeThreshold: 100,
           cleanupPercentage: 0.2
         };
@@ -82,8 +92,53 @@ module.exports = function MigrateSettings(from_ver, to_ver, settings) {
           }
         };
         break;
+
+      case 4:
+        settings = migrateToEndpointManager(settings);
+        break;
     }
 
     return settings;
   }
 };
+
+/**
+ * Clean migration to endpoint manager architecture
+ * Instead of complex migration, delete old config and start fresh
+ * @param {Object} settings - Old settings
+ * @returns {Object} New settings with clean defaults
+ */
+function migrateToEndpointManager(settings) {
+  // Delete old translation config completely
+  delete settings.translation;
+  delete settings.useTerminology;
+  delete settings.geminiKey;
+  delete settings.geminiKeys;
+  delete settings.geminiModel;
+  delete settings.openaiKey;
+  delete settings.hunyuanKey;
+  delete settings.customUrl;
+  delete settings.customKey;
+  delete settings.provider;
+  delete settings.models;
+  delete settings.cloudflareAccountId;
+  delete settings.cloudflareGatewayId;
+  delete settings.geminiOpenAIMode;
+
+  // Initialize new clean structure
+  settings.endpoints = {};
+  settings.receive = { endpoint: 'google', model: '' };
+  settings.send = { endpoint: 'google', model: '' };
+
+  // Ensure cache config exists
+  if (!settings.cache) {
+    settings.cache = {
+      maxSize: 20000,
+      autoSaveInterval: 10,
+      cachePath: "../data/translation-cache.json",
+      writeThreshold: 100,
+      cleanupPercentage: 0.2
+    };
+  }
+  return settings;
+}
