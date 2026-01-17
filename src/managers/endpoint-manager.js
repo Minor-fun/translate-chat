@@ -41,6 +41,7 @@ class EndpointManager {
         // Direction configuration
         this.receiveConfig = { endpoint: 'google', model: '' };
         this.sendConfig = { endpoint: 'google', model: '' };
+        this.fallbackConfig = { endpoint: 'google', model: '' };
 
         // Load from settings
         this._loadFromSettings();
@@ -82,6 +83,13 @@ class EndpointManager {
                 model: settings.send.model || ''
             };
         }
+
+        if (settings.fallback) {
+            this.fallbackConfig = {
+                endpoint: settings.fallback.endpoint || 'google',
+                model: settings.fallback.model || ''
+            };
+        }
     }
 
     /**
@@ -103,7 +111,56 @@ class EndpointManager {
         this.mod.settings.endpoints = endpointsObj;
         this.mod.settings.receive = { ...this.receiveConfig };
         this.mod.settings.send = { ...this.sendConfig };
+        this.mod.settings.fallback = { ...this.fallbackConfig };
         this.mod.saveSettings();
+    }
+
+    /**
+     * Build endpoint config with validation and model selection
+     * @private
+     * @param {string} endpointName
+     * @param {string} modelName
+     * @param {Object} currentConfig
+     * @returns {{success: boolean, message?: string, config?: Object}}
+     */
+    _buildConfig(endpointName, modelName, currentConfig = { endpoint: 'google', model: '' }) {
+        if (!endpointName) {
+            return { success: false, message: 'endpointNameRequired' };
+        }
+
+        const normalizedName = endpointName.trim().toLowerCase();
+
+        // Validate endpoint exists (google is built-in)
+        if (normalizedName !== 'google' && !this.endpoints.has(normalizedName)) {
+            return { success: false, message: 'endpointNotFound' };
+        }
+
+        const normalizedModel = typeof modelName === 'string' ? modelName.trim() : '';
+        let finalModel = '';
+        if (normalizedName !== 'google') {
+            const endpoint = this.endpoints.get(normalizedName);
+            if (normalizedModel) {
+                // User specified a model, validate it
+                if (endpoint.models.length > 0 && !endpoint.models.includes(normalizedModel)) {
+                    return { success: false, message: 'modelNotFound' };
+                }
+                finalModel = normalizedModel;
+            } else if (normalizedName === currentConfig.endpoint && currentConfig.model) {
+                // Same endpoint clicked without model specified, keep current model
+                finalModel = currentConfig.model;
+            } else if (endpoint.models.length > 0) {
+                // Different endpoint or no current model, auto-select the first one
+                finalModel = endpoint.models[0];
+            }
+        }
+
+        return {
+            success: true,
+            config: {
+                endpoint: normalizedName,
+                model: finalModel
+            }
+        };
     }
 
 
@@ -190,6 +247,9 @@ class EndpointManager {
         }
         if (this.sendConfig.endpoint === normalizedName) {
             this.sendConfig = { endpoint: 'google', model: '' };
+        }
+        if (this.fallbackConfig.endpoint === normalizedName) {
+            this.fallbackConfig = { endpoint: 'google', model: '' };
         }
 
         this.endpoints.delete(normalizedName);
@@ -287,43 +347,13 @@ class EndpointManager {
      * @returns {{success: boolean, message: string}}
      */
     _setDirectionConfig(direction, endpointName, modelName = '') {
-        if (!endpointName) {
-            return { success: false, message: 'endpointNameRequired' };
-        }
-
-        const normalizedName = endpointName.trim().toLowerCase();
-
-        // Validate endpoint exists (google is built-in)
-        if (normalizedName !== 'google' && !this.endpoints.has(normalizedName)) {
-            return { success: false, message: 'endpointNotFound' };
-        }
-
-        // Get current config for this direction
         const currentConfig = direction === 'receive' ? this.receiveConfig : this.sendConfig;
-
-        // Determine the model to use
-        let finalModel = '';
-        if (normalizedName !== 'google') {
-            const endpoint = this.endpoints.get(normalizedName);
-            if (modelName) {
-                // User specified a model, validate it
-                if (endpoint.models.length > 0 && !endpoint.models.includes(modelName)) {
-                    return { success: false, message: 'modelNotFound' };
-                }
-                finalModel = modelName.trim();
-            } else if (normalizedName === currentConfig.endpoint && currentConfig.model) {
-                // Same endpoint clicked without model specified, keep current model
-                finalModel = currentConfig.model;
-            } else if (endpoint.models.length > 0) {
-                // Different endpoint or no current model, auto-select the first one
-                finalModel = endpoint.models[0];
-            }
+        const result = this._buildConfig(endpointName, modelName, currentConfig);
+        if (!result.success) {
+            return result;
         }
 
-        const config = {
-            endpoint: normalizedName,
-            model: finalModel
-        };
+        const config = result.config;
 
         if (direction === 'receive') {
             this.receiveConfig = config;
@@ -337,7 +367,34 @@ class EndpointManager {
         return {
             success: true,
             message: messageKey,
-            endpoint: normalizedName,
+            endpoint: config.endpoint,
+            model: config.model
+        };
+    }
+
+    /**
+     * Internal method to set fallback config
+     * @private
+     * @param {string} endpointName - Endpoint name
+     * @param {string} modelName - Model name
+     * @returns {{success: boolean, message: string}}
+     */
+    _setFallbackConfig(endpointName, modelName = '') {
+        const result = this._buildConfig(endpointName, modelName, this.fallbackConfig);
+        if (!result.success) {
+            return result;
+        }
+
+        const config = result.config;
+
+        this.fallbackConfig = config;
+
+        this._saveToSettings();
+
+        return {
+            success: true,
+            message: 'fallbackEndpointSet',
+            endpoint: config.endpoint,
             model: config.model
         };
     }
@@ -360,6 +417,16 @@ class EndpointManager {
      */
     setSendConfig(endpointName, modelName = '') {
         return this._setDirectionConfig('send', endpointName, modelName);
+    }
+
+    /**
+     * Set endpoint and model for fallback
+     * @param {string} endpointName - Endpoint name
+     * @param {string} modelName - Model name
+     * @returns {{success: boolean, message: string}}
+     */
+    setFallbackConfig(endpointName, modelName = '') {
+        return this._setFallbackConfig(endpointName, modelName);
     }
 
 
@@ -400,6 +467,14 @@ class EndpointManager {
     }
 
     /**
+     * Get fallback configuration
+     * @returns {DirectionConfig}
+     */
+    getFallbackConfig() {
+        return { ...this.fallbackConfig };
+    }
+
+    /**
      * Internal method to get endpoint info for a direction
      * @private
      * @param {string} direction - 'receive' or 'send'
@@ -407,7 +482,16 @@ class EndpointManager {
      */
     _getEndpointInfo(direction) {
         const config = direction === 'receive' ? this.receiveConfig : this.sendConfig;
+        return this._getEndpointInfoFromConfig(config);
+    }
 
+    /**
+     * Internal method to get endpoint info from config
+     * @private
+     * @param {DirectionConfig} config
+     * @returns {{endpoint: Endpoint|null, model: string, isGoogle: boolean}}
+     */
+    _getEndpointInfoFromConfig(config) {
         if (config.endpoint === 'google') {
             return { endpoint: null, model: '', isGoogle: true };
         }
@@ -441,6 +525,14 @@ class EndpointManager {
      */
     getSendEndpointInfo() {
         return this._getEndpointInfo('send');
+    }
+
+    /**
+     * Get complete endpoint info for fallback
+     * @returns {{endpoint: Endpoint|null, model: string, isGoogle: boolean}}
+     */
+    getFallbackEndpointInfo() {
+        return this._getEndpointInfoFromConfig(this.fallbackConfig);
     }
 
     /**

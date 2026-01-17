@@ -179,6 +179,7 @@ class Gui {
         const endpoints = endpointManager.listEndpoints();
         const receiveConfig = endpointManager.getReceiveConfig();
         const sendConfig = endpointManager.getSendConfig();
+        const fallbackConfig = endpointManager.getFallbackConfig();
 
         const result = [
             this._createSectionHeader(t('endpointListTitle')),
@@ -242,12 +243,23 @@ class Gui {
         // Send endpoint
         result.push(...this._buildDirectionEndpoint('send', sendConfig, endpoints, endpointManager, t));
 
+        // Fallback endpoint
+        result.push(...this._buildDirectionEndpoint('fallback', fallbackConfig, endpoints, endpointManager, t));
+
         return result;
     }
 
     _buildDirectionEndpoint(direction, config, endpoints, endpointManager, t) {
-        const labelKey = direction === 'receive' ? 'receiveEndpoint' : 'sendEndpoint';
-        const modelLabelKey = direction === 'receive' ? 'receiveModel' : 'sendModel';
+        const isFallback = direction === 'fallback';
+        const labelKey = isFallback
+            ? 'fallbackEndpoint'
+            : (direction === 'receive' ? 'receiveEndpoint' : 'sendEndpoint');
+        const modelLabelKey = isFallback
+            ? 'fallbackModel'
+            : (direction === 'receive' ? 'receiveModel' : 'sendModel');
+        const commandPrefix = isFallback
+            ? `${this.cmd} endpoint fallback`
+            : `${this.cmd} endpoint ${direction}`;
 
         const result = [
             this._createIndent(1),
@@ -257,7 +269,7 @@ class Gui {
             // Google button
             {
                 "text": `<font color="${config.endpoint === 'google' ? COLORS.green : COLORS.blue}" size="+22">[Google]</font>`,
-                "command": `${this.cmd} endpoint ${direction} google;${this.cmd} gui`
+                "command": `${commandPrefix} google;${this.cmd} gui`
             },
             { "text": "&nbsp;" }
         ];
@@ -268,7 +280,7 @@ class Gui {
             result.push(
                 {
                     "text": `<font color="${isActive ? COLORS.green : COLORS.blue}" size="+22">[${ep.name}]</font>`,
-                    "command": `${this.cmd} endpoint ${direction} ${ep.name};${this.cmd} gui`
+                    "command": `${commandPrefix} ${ep.name};${this.cmd} gui`
                 },
                 { "text": "&nbsp;" }
             );
@@ -286,7 +298,7 @@ class Gui {
                         this._createIndent(2),
                         {
                             "text": `<font color="${isActiveModel ? COLORS.green : COLORS.blue}" size="+22">[${model}]</font>`,
-                            "command": `${this.cmd} endpoint ${direction} ${config.endpoint} ${model};${this.cmd} gui`
+                            "command": `${commandPrefix} ${config.endpoint} ${model};${this.cmd} gui`
                         }
                     );
                 }

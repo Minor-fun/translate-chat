@@ -274,7 +274,8 @@ class CommandHandler {
         delete: (name) => this.deleteEndpointCmd(name),
         list: () => this.listEndpointsCmd(),
         receive: (name, model) => this.setReceiveEndpointCmd(name, model),
-        send: (name, model) => this.setSendEndpointCmd(name, model)
+        send: (name, model) => this.setSendEndpointCmd(name, model),
+        fallback: (name, model) => this.setFallbackEndpointCmd(name, model)
       },
 
       // Cache commands
@@ -373,13 +374,15 @@ class CommandHandler {
     const endpoints = this.translator.listEndpoints();
     const receiveConfig = this.translator.getReceiveConfig();
     const sendConfig = this.translator.getSendConfig();
+    const fallbackConfig = this.translator.getFallbackConfig();
 
     this.mod.command.message(this.t('endpointList'));
 
     // Show Google Translate (Built-in)
     const isReceiveGoogle = receiveConfig.endpoint === 'google';
     const isSendGoogle = sendConfig.endpoint === 'google';
-    this.mod.command.message(`  [google] ${this.t('googleTranslate')} (${this.t('builtin')})${isReceiveGoogle ? ' [R]' : ''}${isSendGoogle ? ' [S]' : ''}`);
+    const isFallbackGoogle = fallbackConfig.endpoint === 'google';
+    this.mod.command.message(`  [google] ${this.t('googleTranslate')} (${this.t('builtin')})${isReceiveGoogle ? ' [R]' : ''}${isSendGoogle ? ' [S]' : ''}${isFallbackGoogle ? ' [F]' : ''}`);
 
     if (endpoints.length === 0) {
       this.mod.command.message(`  ${this.t('noEndpointsConfigured')}`);
@@ -387,7 +390,8 @@ class CommandHandler {
       for (const ep of endpoints) {
         const isReceive = receiveConfig.endpoint === ep.name;
         const isSend = sendConfig.endpoint === ep.name;
-        const markers = `${isReceive ? ' [R]' : ''}${isSend ? ' [S]' : ''}`;
+        const isFallback = fallbackConfig.endpoint === ep.name;
+        const markers = `${isReceive ? ' [R]' : ''}${isSend ? ' [S]' : ''}${isFallback ? ' [F]' : ''}`;
         const models = ep.models.length > 0 ? ep.models.join(', ') : this.t('noModels');
 
         this.mod.command.message(`  [${ep.name}] ${ep.url}${markers}`);
@@ -398,6 +402,7 @@ class CommandHandler {
     this.mod.command.message('');
     this.mod.command.message(`${this.t('receiveConfig')}: ${receiveConfig.endpoint}${receiveConfig.model ? ':' + receiveConfig.model : ''}`);
     this.mod.command.message(`${this.t('sendConfig')}: ${sendConfig.endpoint}${sendConfig.model ? ':' + sendConfig.model : ''}`);
+    this.mod.command.message(`${this.t('fallbackConfig')}: ${fallbackConfig.endpoint}${fallbackConfig.model ? ':' + fallbackConfig.model : ''}`);
   }
 
   /**
@@ -444,6 +449,28 @@ class CommandHandler {
     }
   }
 
+  /**
+   * Set fallback endpoint
+   */
+  setFallbackEndpointCmd(name, model = '') {
+    if (!name) {
+      this.mod.command.message(this.t('endpointNameRequired'));
+      this.mod.command.message('translate endpoint fallback <name> [model]');
+      return;
+    }
+
+    const result = this.translator.setFallbackEndpoint(name, model);
+    if (result.success) {
+      if (result.model) {
+        this.mod.command.message(this.t(result.message, result.endpoint, result.model));
+      } else {
+        this.mod.command.message(this.t('fallbackEndpointSetSimple', result.endpoint));
+      }
+    } else {
+      this.mod.command.message(this.t(result.message, name));
+    }
+  }
+
 
 
   showCommandList() {
@@ -468,6 +495,7 @@ class CommandHandler {
       this.t('commandListItem', 'translate endpoint delete <name>', this.t('deleteEndpointDesc')),
       this.t('commandListItem', 'translate endpoint receive <name> [model]', this.t('setReceiveEndpointDesc')),
       this.t('commandListItem', 'translate endpoint send <name> [model]', this.t('setSendEndpointDesc')),
+      this.t('commandListItem', 'translate endpoint fallback <name> [model]', this.t('setFallbackEndpointDesc')),
       this.t('commandCategory', this.t('cacheCommands')),
       this.t('commandListItem', 'translate cache save', this.t('saveCacheDesc')),
       this.t('commandListItem', 'translate cache search [' + this.t('keywordPlaceholder') + ']', this.t('searchCacheDesc')),

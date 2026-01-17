@@ -84,8 +84,10 @@ module.exports = class Translator {
   listEndpoints() { return this.endpointManager.listEndpoints(); }
   setReceiveEndpoint(name, model) { return this.endpointManager.setReceiveConfig(name, model); }
   setSendEndpoint(name, model) { return this.endpointManager.setSendConfig(name, model); }
+  setFallbackEndpoint(name, model) { return this.endpointManager.setFallbackConfig(name, model); }
   getReceiveConfig() { return this.endpointManager.getReceiveConfig(); }
   getSendConfig() { return this.endpointManager.getSendConfig(); }
+  getFallbackConfig() { return this.endpointManager.getFallbackConfig(); }
 
   // Translation
   async translateText(text, targetLang, sourceLang = 'auto', useCache = true) {

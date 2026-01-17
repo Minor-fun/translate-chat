@@ -75,6 +75,73 @@ class TranslationService {
         return this.i18n ? (key, ...args) => this.i18n.t(key, ...args) : null;
     }
 
+    /**
+     * Get fallback endpoint info
+     * @private
+     * @returns {{endpoint: Object|null, model: string, isGoogle: boolean}}
+     */
+    _getFallbackEndpointInfo() {
+        return this.endpointManager.getFallbackEndpointInfo();
+    }
+
+    /**
+     * Get provider name from endpoint info
+     * @private
+     * @param {{endpoint: Object|null, model: string, isGoogle: boolean}} endpointInfo
+     * @returns {string}
+     */
+    _getProviderName(endpointInfo) {
+        if (endpointInfo.isGoogle) {
+            return 'Google';
+        }
+        return endpointInfo.model || endpointInfo.endpoint?.name || 'unknown';
+    }
+
+    /**
+     * Check if two endpoint infos represent the same provider
+     * @private
+     * @param {Object} primaryInfo
+     * @param {Object} fallbackInfo
+     * @returns {boolean}
+     */
+    _isSameEndpointInfo(primaryInfo, fallbackInfo) {
+        if (!primaryInfo || !fallbackInfo) return false;
+        if (primaryInfo.isGoogle && fallbackInfo.isGoogle) return true;
+        if (primaryInfo.isGoogle !== fallbackInfo.isGoogle) return false;
+
+        const primaryName = primaryInfo.endpoint?.name || '';
+        const fallbackName = fallbackInfo.endpoint?.name || '';
+        const primaryModel = primaryInfo.model || '';
+        const fallbackModel = fallbackInfo.model || '';
+
+        return primaryName === fallbackName && primaryModel === fallbackModel;
+    }
+
+    /**
+     * Translate using endpoint info (Google or AI)
+     * @private
+     */
+    async _translateWithEndpointInfo(text, targetLang, sourceLang, endpointInfo) {
+        const providerName = this._getProviderName(endpointInfo);
+        if (endpointInfo.isGoogle) {
+            return {
+                text: await this._translateWithGoogle(text, targetLang, sourceLang),
+                provider: providerName
+            };
+        }
+
+        return {
+            text: await this._translateWithAI(
+                text,
+                targetLang,
+                sourceLang,
+                endpointInfo.endpoint,
+                endpointInfo.model
+            ),
+            provider: providerName
+        };
+    }
+
 
 
     /**
@@ -153,40 +220,44 @@ class TranslationService {
             }
         }
 
-        let translatedText;
-        let providerName;
+        const fallbackInfo = this._getFallbackEndpointInfo();
+        const shouldFallback = fallbackInfo && !this._isSameEndpointInfo(endpointInfo, fallbackInfo);
         const translateFunc = this._getTranslateFunc();
 
         try {
-            if (endpointInfo.isGoogle) {
-                // Use Google Translate
-                translatedText = await this._translateWithGoogle(text, targetLang, sourceLang);
-                providerName = 'Google';
-                this.state[direction] = { model: 'Google', errorType: '' };
-            } else {
-                // Use AI endpoint translation (no fallback to Google)
-                translatedText = await this._translateWithAI(
-                    text,
-                    targetLang,
-                    sourceLang,
-                    endpointInfo.endpoint,
-                    endpointInfo.model
-                );
-                providerName = endpointInfo.model || endpointInfo.endpoint.name;
-                this.state[direction] = { model: providerName, errorType: '' };
+            const result = await this._translateWithEndpointInfo(text, targetLang, sourceLang, endpointInfo);
+            if (useCache && result.text) {
+                this.cacheManager.set(cacheKey, result.text);
             }
-
-            // Cache result
-            if (useCache && translatedText) {
-                this.cacheManager.set(cacheKey, translatedText);
-            }
-
-            return { text: translatedText, provider: providerName };
+            this.state[direction] = { model: result.provider, errorType: '' };
+            return { text: result.text, provider: result.provider };
         } catch (error) {
-            const providerName = endpointInfo.isGoogle ? 'Google' : (endpointInfo.endpoint?.name || 'unknown');
+            if (shouldFallback) {
+                console.warn(`Translation failed for ${direction}, trying fallback:`, error.message);
+                try {
+                    const fallbackResult = await this._translateWithEndpointInfo(text, targetLang, sourceLang, fallbackInfo);
+                    if (useCache && fallbackResult.text) {
+                        this.cacheManager.set(cacheKey, fallbackResult.text);
+                    }
+                    this.state[direction] = { model: fallbackResult.provider, errorType: '' };
+                    return { text: fallbackResult.text, provider: fallbackResult.provider };
+                } catch (fallbackError) {
+                    const fallbackProviderName = this._getProviderName(fallbackInfo);
+                    const fallbackErrorInfo = handleTranslationError(fallbackError, fallbackProviderName, translateFunc);
+                    this.state[direction] = {
+                        model: fallbackProviderName,
+                        errorType: fallbackErrorInfo.type
+                    };
+
+                    console.error(`Translation failed for ${direction} (fallback):`, fallbackError.message);
+                    throw fallbackError;
+                }
+            }
+
+            const providerName = this._getProviderName(endpointInfo);
             const errorInfo = handleTranslationError(error, providerName, translateFunc);
             this.state[direction] = {
-                model: endpointInfo.isGoogle ? 'Google' : (endpointInfo.model || endpointInfo.endpoint?.name || ''),
+                model: providerName,
                 errorType: errorInfo.type
             };
 

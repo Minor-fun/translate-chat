@@ -2,7 +2,7 @@
 
 /**
  * Default settings
- * Version 4: Endpoint Manager Architecture
+ * Version 5: Endpoint Manager with fallback
  */
 const DefaultSettings = {
   enabled: false,
@@ -26,6 +26,12 @@ const DefaultSettings = {
 
   // Send direction configuration
   send: {
+    endpoint: 'google',
+    model: ''
+  },
+
+  // Fallback configuration
+  fallback: {
     endpoint: 'google',
     model: ''
   },
@@ -96,6 +102,18 @@ module.exports = function MigrateSettings(from_ver, to_ver, settings) {
       case 4:
         settings = migrateToEndpointManager(settings);
         break;
+
+      case 5:
+        if (!settings.fallback) {
+          if (settings.receiveFallback) {
+            settings.fallback = settings.receiveFallback;
+          } else if (settings.sendFallback) {
+            settings.fallback = settings.sendFallback;
+          } else {
+            settings.fallback = { endpoint: 'google', model: '' };
+          }
+        }
+        break;
     }
 
     return settings;
@@ -129,6 +147,7 @@ function migrateToEndpointManager(settings) {
   settings.endpoints = {};
   settings.receive = { endpoint: 'google', model: '' };
   settings.send = { endpoint: 'google', model: '' };
+  settings.fallback = { endpoint: 'google', model: '' };
 
   // Ensure cache config exists
   if (!settings.cache) {
